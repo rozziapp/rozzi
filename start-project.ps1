@@ -1,4 +1,4 @@
-Write-Host "🚀 Starting Setuna Project..." -ForegroundColor Green
+Write-Host "🚀 Starting Rozzi Project..." -ForegroundColor Green
 Write-Host ""
 
 Write-Host "🔍 Updating IP address..." -ForegroundColor Yellow

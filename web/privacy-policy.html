@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy & Terms of Service - Rozzi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #6b46c1;
+      --primary-hover: #553c9a;
+      --bg-color: #B0AAD9;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #4b5563;
+      --border-color: #e5e7eb;
+      --accent-color: #f3f0ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo-icon {
+      background: var(--accent-color);
+      padding: 0.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .back-btn {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      color: var(--primary-color);
+      text-decoration: none;
+      background: var(--accent-color);
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2.5rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    aside {
+      position: sticky;
+      top: 5.5rem;
+      height: fit-content;
+    }
+
+    .toc-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .toc-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--accent-color);
+      padding-bottom: 0.5rem;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toc-link {
+      display: block;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      border-left: 2px solid transparent;
+    }
+
+    .toc-link:hover, .toc-link.active {
+      color: var(--primary-color);
+      background-color: var(--accent-color);
+      border-left-color: var(--primary-color);
+      padding-left: 1rem;
+    }
+
+    .content-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 3rem;
+      box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .last-updated {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 1px;
+    }
+
+    .tab-button {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.8rem 1.5rem;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .tab-button:hover {
+      color: var(--primary-color);
+    }
+
+    .tab-button.active {
+      color: var(--primary-color);
+    }
+
+    .tab-button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background-color: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .legal-section {
+      margin-bottom: 2.5rem;
+      scroll-margin-top: 6.5rem;
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    p {
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-main);
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .highlight-box {
+      background-color: var(--accent-color);
+      border-left: 4px solid var(--primary-color);
+      padding: 1.2rem;
+      border-radius: 0 12px 12px 0;
+      margin: 1.5rem 0;
+    }
+
+    .highlight-box p {
+      margin-bottom: 0;
+      color: var(--primary-color);
+      font-weight: 500;
+    }
+
+    footer {
+      background-color: #1f2937;
+      color: #9ca3af;
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: auto;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+      aside {
+        display: none;
+      }
+      .content-card {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <a href="/" class="logo">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 7h-4V5c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 5h4v2h-4V5zm10 15H4V9h16v11z" fill="#6b46c1"/>
+          </svg>
+        </div>
+        Rozzi
+      </a>
+      <a href="/" class="back-btn">Go to Homepage</a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <aside>
+      <div class="toc-card">
+        <div class="toc-title">Quick Navigation</div>
+        <!-- Table of Contents for Privacy Policy -->
+        <ul id="privacy-toc" class="toc-list">
+          <li><a href="#p-introduction" class="toc-link active">1. Introduction</a></li>
+          <li><a href="#p-collect" class="toc-link">2. Data We Collect</a></li>
+          <li><a href="#p-use" class="toc-link">3. How We Use Data</a></li>
+          <li><a href="#p-share" class="toc-link">4. Data Sharing & Third-Parties</a></li>
+          <li><a href="#p-security" class="toc-link">5. Data Security</a></li>
+          <li><a href="#p-retention" class="toc-link">6. Data Retention & Deletion</a></li>
+          <li><a href="#p-children" class="toc-link">7. Children's Privacy</a></li>
+          <li><a href="#p-contact" class="toc-link">8. Contact Us</a></li>
+        </ul>
+        <!-- Table of Contents for Terms of Service -->
+        <ul id="terms-toc" class="toc-list" style="display: none;">
+          <li><a href="#t-agreement" class="toc-link">1. Agreement to Terms</a></li>
+          <li><a href="#t-eligibility" class="toc-link">2. Eligibility & Accounts</a></li>
+          <li><a href="#t-services" class="toc-link">3. Platform Services & Matching</a></li>
+          <li><a href="#t-payments" class="toc-link">4. Payments, Plans & Refunds</a></li>
+          <li><a href="#t-conduct" class="toc-link">5. User Code of Conduct</a></li>
+          <li><a href="#t-disclaimers" class="toc-link">6. Disclaimers of Warranties</a></li>
+          <li><a href="#t-liability" class="toc-link">7. Limitation of Liability</a></li>
+          <li><a href="#t-governing" class="toc-link">8. Governing Law & Dispute Resolution</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="content-card">
+      <h1>Legal Information</h1>
+      <div class="last-updated">Last Updated: June 10, 2026</div>
+
+      <div class="tab-nav">
+        <button class="tab-button active" onclick="switchTab('privacy')">Privacy Policy</button>
+        <button class="tab-button" onclick="switchTab('terms')">Terms of Service</button>
+      </div>
+
+      <!-- PRIVACY POLICY CONTENT -->
+      <div id="privacy-content" class="tab-content active">
+        <section id="p-introduction" class="legal-section">
+          <h2>1. Introduction</h2>
+          <p>Welcome to Rozzi ("Platform," "App," "we," "our," or "us"), operated under the parent entity <strong>Niratma</strong>. Rozzi is committed to protecting your privacy and ensuring a secure experience. This Privacy Policy details how we collect, store, process, protect, and share your personal information when you use our mobile application and related web services.</p>
+          <p>By using Rozzi, you consent to the data collection and practices described in this policy. If you do not agree with any terms of this Privacy Policy, please discontinue use of the Platform immediately.</p>
+        </section>
+
+        <section id="p-collect" class="legal-section">
+          <h2>2. Data We Collect</h2>
+          <p>We collect information you voluntarily provide to us, as well as metadata generated automatically when you interact with the app. This is classified as follows:</p>
+          
+          <h3>A. Personal Information You Provide</h3>
+          <ul>
+            <li><strong>Account Profiles (Google Sign-In):</strong> When you register using your Google account, we collect your name, email address, profile photo, and unique Google ID token.</li>
+            <li><strong>Job Seeker Specific Information:</strong> Resumes/CVs (stored securely on Cloudinary), educational details, professional history, work experience, specific skills, and job preferences. We also collect verification documents (such as ID cards) if submitted for profile verification.</li>
+            <li><strong>Employer/Recruiter Specific Information:</strong> Company name, address, industry sector, contact numbers, corporate email, billing credentials (processed via Razorpay), and job posting descriptions.</li>
+            <li><strong>Support & Communications:</strong> Messages, feedback, or bugs reported to our support emails (e.g., setunajobs@gmail.com).</li>
+          </ul>
+
+          <h3>B. Automatically Collected Information</h3>
+          <ul>
+            <li><strong>Usage Logs:</strong> Search history, views on job listings, job application records, recruiter contacts, and activity timestamps.</li>
+            <li><strong>Device & Network Data:</strong> IP address, device type, operating system version, mobile network carrier, unique device identifiers, and language preferences.</li>
+          </ul>
+        </section>
+
+        <section id="p-use" class="legal-section">
+          <h2>3. How We Use Your Data</h2>
+          <p>Rozzi processes your data to deliver a modern, personalized, and safe job recruitment experience. Specifically, we use it for:</p>
+          <ul>
+            <li><strong>Job Matching and Placement:</strong> Facilitating connection between recruiters/employers looking for talent and job seekers seeking opportunities.</li>
+            <li><strong>Account Authentication:</strong> Securely authenticating your login requests using secure JSON Web Tokens (JWT).</li>
+            <li><strong>Payment Processing:</strong> Handling billing for employer premium plans or job advertisement spots securely via our payment processor, Razorpay.</li>
+            <li><strong>Media Management:</strong> Hosting profiles, resumes, and documentation using Cloudinary.</li>
+            <li><strong>Analytics & Improvement:</strong> Diagnosing app issues, monitoring system logs, and improving the app layout and match algorithms.</li>
+          </ul>
+        </section>
+
+        <section id="p-share" class="legal-section">
+          <h2>4. Data Sharing & Third-Parties</h2>
+          <p>We do not sell your personal data. We only share your data with trusted partners and third-party service providers to facilitate app operations:</p>
+          <ul>
+            <li><strong>Between Job Seekers and Employers:</strong> When a Job Seeker applies to a position, their profile details, resume, and contact email are shared directly with the Employer.</li>
+            <li><strong>Third-Party Integrations:</strong>
+              <ul>
+                <li><strong>Cloudinary:</strong> For secure hosting and cleanup of profile images, resumes, and identification documents.</li>
+                <li><strong>Razorpay:</strong> To process premium subscription payments. Your payment credentials (card details, UPI, banking credentials) are encrypted and processed entirely by Razorpay; Rozzi never stores your credit card details on its servers.</li>
+                <li><strong>Google Cloud Console:</strong> For managing secure OAuth login sessions.</li>
+              </ul>
+            </li>
+            <li><strong>Legal & Compliance Requirements:</strong> We will disclose information if required by law, court order, or government regulation, or to prevent fraudulent or illegal activity.</li>
+          </ul>
+        </section>
+
+        <section id="p-security" class="legal-section">
+          <h2>5. Data Security</h2>
+          <p>We take security seriously. All network communication between the Rozzi mobile application and the Niratma backend is encrypted using **HTTPS / SSL (TLS 1.2+)**. User authentication is managed using secure, encrypted JSON Web Tokens (JWT). All media files (resumes/images) are stored on encrypted Cloudinary storage.</p>
+          <div class="highlight-box">
+            <p>Important Notice: While we deploy industry-standard measures, no method of transmission over the internet or mobile storage is 100% secure. We cannot guarantee absolute security against unauthorized access or breaches.</p>
+          </div>
+        </section>
+
+        <section id="p-retention" class="legal-section">
+          <h2>6. Data Retention & Deletion</h2>
+          <p>We retain your personal data for as long as you keep your account active. You have full control over your data. You may request account deletion at any time in the app profile settings. Upon account deletion:</p>
+          <ul>
+            <li>Your profile details, education, resume links, and job applications will be permanently erased from our primary database.</li>
+            <li>Associated uploaded media (profile photos, resumes) will be queued for automated deletion on Cloudinary.</li>
+            <li>We may retain anonymized usage data or specific payment history logs solely for accounting, tax compliance, or audit requirements.</li>
+          </ul>
+        </section>
+
+        <section id="p-children" class="legal-section">
+          <h2>7. Children's Privacy</h2>
+          <p>Rozzi is designed strictly for adults and professionals. We do not knowingly collect, request, or maintain data from individuals under the age of 18. If we discover that a minor under 18 has registered or provided personal information, we will delete it immediately from our servers.</p>
+        </section>
+
+        <section id="p-contact" class="legal-section">
+          <h2>8. Contact Us</h2>
+          <p>For any questions, requests, or disputes regarding this Privacy Policy, please contact us at:</p>
+          <ul>
+            <li><strong>Parent Entity:</strong> Niratma</li>
+            <li><strong>Support Email:</strong> setunajobs@gmail.com</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- TERMS OF SERVICE CONTENT -->
+      <div id="terms-content" class="tab-content">
+        <section id="t-agreement" class="legal-section">
+          <h2>1. Agreement to Terms</h2>
+          <p>By downloading, installing, or accessing Rozzi, you agree to be bound by these Terms of Service. These Terms govern your relationship with Rozzi and Niratma. If you disagree with any part of these Terms, you are prohibited from using the Platform.</p>
+        </section>
+
+        <section id="t-eligibility" class="legal-section">
+          <h2>2. Eligibility & Account Security</h2>
+          <p>You must be at least 18 years old to use Rozzi. When you register, you agree to provide true, accurate, and complete registration information. You are solely responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your login.</p>
+        </section>
+
+        <section id="t-services" class="legal-section">
+          <h2>3. Platform Services & Matching</h2>
+          <p>Rozzi is a matching platform. We provide tools to help job seekers find opportunities and recruiters find candidates. We do not guarantee employment, placements, or that any employer will respond to applications. We are not a party to any eventual employment contract or agreement signed between candidates and employers; all negotiations, interviews, and contracts are solely between the candidate and the employer.</p>
+        </section>
+
+        <section id="t-payments" class="legal-section">
+          <h2>4. Payments, Plans & Refunds</h2>
+          <p>Rozzi offers free services to job seekers, while recruiters/employers can subscribe to paid premium features or job advertisement slots.</p>
+          <ul>
+            <li><strong>Billing Processor:</strong> All payments are processed securely through **Razorpay**.</li>
+            <li><strong>No Refunds:</strong> All payments made for Rozzi premium features, plans, or promotions are final and non-refundable.</li>
+            <li><strong>Plan Changes:</strong> Niratma reserves the right to modify subscription fees, introduce new plans, or modify features of existing plans with reasonable notice.</li>
+          </ul>
+        </section>
+
+        <section id="t-conduct" class="legal-section">
+          <h2>5. User Code of Conduct</h2>
+          <p>You agree to use Rozzi responsibly and legally. The following actions are strictly prohibited and will result in immediate account termination without refund:</p>
+          <ul>
+            <li>Posting fake, fraudulent, misleading, or deceptive job openings.</li>
+            <li>Charging job seekers any fee or payment for job matching or recruitment via our platform.</li>
+            <li>Impersonating another person, representative, or company.</li>
+            <li>Uploading malware, spam, explicit content, or copyrighted material you do not own.</li>
+            <li>Harvesting other users' contact details, resumes, or company info for marketing or off-platform purposes.</li>
+          </ul>
+        </section>
+
+        <section id="t-disclaimers" class="legal-section">
+          <h2>6. Disclaimers of Warranties</h2>
+          <p>THE ROZZI APP AND WEBSITE ARE PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. NIRATMA MAKES NO WARRANTIES, EXPRESSED OR IMPLIED, REGARDING THE ACCURACY OF JOB POSTINGS, CANDIDATE RESUMES, SERVICE AVAILABILITY, OR SECURE TRANSMISSIONS. NIRATMA DISCLAIMS ALL WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.</p>
+        </section>
+
+        <section id="t-liability" class="legal-section">
+          <h2>7. Limitation of Liability</h2>
+          <p>TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL NIRATMA, ITS DIRECTORS, OR ITS EMPLOYEES BE LIABLE FOR ANY INDIRECT, PUNITIVE, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOSS OF PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR IN CONNECTION WITH YOUR USE OF THE PLATFORM.</p>
+          <p>FOR ANY DIRECT DISPUTE, OUR LIABILITY IS STRICTLY LIMITED TO THE ACCUMULATED AMOUNT YOU HAVE PAID TO ROZZI IN THE THREE (3) MONTHS PRECEDING THE DISPUTE, OR ZERO (0) INR IF YOU HAVE ONLY USED A FREE ACCOUNT.</p>
+        </section>
+
+        <section id="t-governing" class="legal-section">
+          <h2>8. Governing Law & Dispute Resolution</h2>
+          <p>These terms and conditions are governed by and construed in accordance with the laws of **India**. Any legal action, claim, or dispute arising out of these Terms shall be subject to the exclusive jurisdiction of the courts located in Mumbai/Delhi (or Niratma's registered business headquarters in India).</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Rozzi by <a href="https://rozzi.vercel.app">Niratma</a>. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function switchTab(tab) {
+      // Toggle tab buttons
+      const buttons = document.querySelectorAll('.tab-button');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      
+      // Toggle tab contents
+      const contents = document.querySelectorAll('.tab-content');
+      contents.forEach(content => content.classList.remove('active'));
+
+      // Toggle Table of Contents
+      const privacyToc = document.getElementById('privacy-toc');
+      const termsToc = document.getElementById('terms-toc');
+
+      if (tab === 'privacy') {
+        document.querySelector('.tab-button[onclick="switchTab(\'privacy\')"]').classList.add('active');
+        document.getElementById('privacy-content').classList.add('active');
+        privacyToc.style.display = 'flex';
+        termsToc.style.display = 'none';
+        
+        // Activate first link of privacy TOC
+        document.querySelectorAll('.toc-link').forEach(link => link.classList.remove('active'));
+        privacyToc.querySelector('.toc-link').classList.add('active');
+      } else {
+        document.querySelector('.tab-button[onclick="switchTab(\'terms\')"]').classList.add('active');
+        document.getElementById('terms-content').classList.add('active');
+        privacyToc.style.display = 'none';
+        termsToc.style.display = 'flex';
+
+        // Activate first link of terms TOC
+        document.querySelectorAll('.toc-link').forEach(link => link.classList.remove('active'));
+        termsToc.querySelector('.toc-link').classList.add('active');
+      }
+    }
+
+    // Scroll active link styling
+    const links = document.querySelectorAll('.toc-link');
+    links.forEach(link => {
+      link.addEventListener('click', function(e) {
+        links.forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Check localStorage or Hash on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      const storedTab = localStorage.getItem('tab');
+      const hash = window.location.hash;
+      
+      if (storedTab === 'terms' || hash === '#terms-content' || hash.startsWith('#t-')) {
+        switchTab('terms');
+        localStorage.removeItem('tab'); // Clean up
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+Source exists: True
+Source size: 663437 bytes
+Copy successful to q:\Niratma\Setuna\web\assets\rozzi_hero_visual.png
+Dest exists: True
+Dest size: 663437 bytes

@@ -1,4 +1,4 @@
-# 🚀 Simple Setuna Startup Guide
+# 🚀 Simple Rozzi Startup Guide
 
 ## The Problem (Solved!)
 - **Before**: Complex connectivity system that tried 13+ different IP addresses
