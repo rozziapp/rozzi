@@ -1827,12 +1827,20 @@ class ConversationDetailView(generics.RetrieveAPIView):
         return conversations
 
 
+from rest_framework.pagination import PageNumberPagination
+
+class MessagePagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class MessageListView(generics.ListAPIView):
     """
     List messages in a conversation
     """
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = MessagePagination
     
     def get_queryset(self):
         conversation_id = self.kwargs['conversation_id']
@@ -1861,11 +1869,12 @@ class MessageListView(generics.ListAPIView):
         for message in unread_messages:
             message.mark_as_read()
         
-        # Get all messages in the conversation
-        messages = Message.objects.filter(conversation=conversation).order_by('created_at')
+        # Get messages in the conversation (newest first for pagination)
+        messages = Message.objects.filter(conversation=conversation).order_by('-created_at')
         
-        print(f"[MSG] Found {messages.count()} messages in conversation {conversation.id}")
-        for msg in messages:
+        print(f"[MSG] Found messages in conversation {conversation.id} (paginated)")
+        # Print only the first few messages for debugging to avoid loading the whole queryset
+        for msg in messages[:5]:
             print(f"   - {msg.sender.username}: {msg.content} ({msg.created_at})")
         
         return messages

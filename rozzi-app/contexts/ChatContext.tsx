@@ -48,9 +48,12 @@ interface ChatContextType {
   currentMessages: Message[];
   isLoading: boolean;
   isRefreshing: boolean;
+  isLoadingMore: boolean;
+  hasMoreMessages: boolean;
   currentConversationId: string | null;
   fetchConversations: () => Promise<void>;
   loadMessages: (conversationId: string) => Promise<void>;
+  loadMoreMessages: () => Promise<void>;
   sendMessage: (recipientId: string, content: string) => Promise<void>;
   joinConversation: (conversationId: string) => Promise<void>;
   leaveConversation: () => void;
@@ -78,6 +81,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [nextPageUrl, setNextPageUrl] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Refs
   const currentConversationIdRef = useRef<string | null>(null);
@@ -148,29 +153,42 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const response = await API.get(`/conversations/${conversationId}/messages/`);
-      let data: any[] = Array.isArray(response.data) ? response.data :
-        response.data?.results || response.data?.data || [];
+      let data: any[] = [];
+      let nextUrl: string | null = null;
+
+      if (response.data && response.data.results) {
+        data = response.data.results;
+        nextUrl = response.data.next;
+      } else if (Array.isArray(response.data)) {
+        data = response.data;
+      } else if (response.data && response.data.data) {
+        data = response.data.data;
+      }
+
+      setNextPageUrl(nextUrl);
 
       const messages = data
         .map(validateMessage)
         .filter((m): m is Message => m !== null)
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-      // Preserve any pending messages
+      // Preserve pending and existing messages
       setCurrentMessages(prev => {
         const pending = prev.filter(m => m.pending);
-        if (pending.length > 0) {
-          const serverIds = new Set(messages.map(m => m.id));
-          const uniquePending = pending.filter(p => !serverIds.has(p.id));
-          const merged = [...messages, ...uniquePending];
-          merged.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-          // Update cache with merged result
-          messageCacheRef.current.set(conversationId, merged);
-          return merged;
-        }
+        const serverIds = new Set(messages.map(m => m.id));
+        
+        // Merge with existing older messages if background refresh, otherwise load fresh page
+        const existingOlder = backgroundRefresh 
+          ? prev.filter(m => !serverIds.has(m.id)) 
+          : [];
+
+        const uniquePending = pending.filter(p => !serverIds.has(p.id));
+        const merged = [...existingOlder, ...messages, ...uniquePending];
+        merged.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        
         // Update in-memory cache
-        messageCacheRef.current.set(conversationId, messages);
-        return messages;
+        messageCacheRef.current.set(conversationId, merged);
+        return merged;
       });
 
       // Also persist to AsyncStorage for cold-start fallback
@@ -319,7 +337,62 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Don't clear messages from cache - just reset the current view
     setCurrentConversationId(null);
     setCurrentMessages([]);
+    setNextPageUrl(null);
+    setIsLoadingMore(false);
   }, []);
+
+  // ============================================
+  // LOAD MORE (PAGINATED) MESSAGES
+  // ============================================
+  const loadMoreMessages = useCallback(async (): Promise<void> => {
+    if (!nextPageUrl || isLoadingMore || !currentConversationId) return;
+
+    setIsLoadingMore(true);
+    console.log('🔄 Loading more messages from:', nextPageUrl);
+
+    try {
+      // API client uses relative URLs. If nextPageUrl is absolute, extract path + query
+      let url = nextPageUrl;
+      const urlObj = nextPageUrl.split('/api');
+      if (urlObj.length > 1) {
+        url = urlObj[1];
+      }
+
+      const response = await API.get(url);
+      let data: any[] = [];
+      let nextUrl: string | null = null;
+
+      if (response.data && response.data.results) {
+        data = response.data.results;
+        nextUrl = response.data.next;
+      } else if (Array.isArray(response.data)) {
+        data = response.data;
+      }
+
+      setNextPageUrl(nextUrl);
+
+      const newMessages = data
+        .map(validateMessage)
+        .filter((m): m is Message => m !== null);
+
+      setCurrentMessages(prev => {
+        const serverIds = new Set(prev.map(m => m.id));
+        const uniqueNew = newMessages.filter(m => !serverIds.has(m.id));
+        const merged = [...prev, ...uniqueNew];
+        merged.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+        if (currentConversationId) {
+          messageCacheRef.current.set(currentConversationId, merged);
+        }
+        return merged;
+      });
+      console.log('✅ Loaded', newMessages.length, 'older messages successfully');
+    } catch (error) {
+      console.error('Failed to load more messages:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [nextPageUrl, isLoadingMore, currentConversationId, validateMessage]);
 
   // ============================================
   // MARK AS READ
@@ -399,11 +472,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         const response = await API.get(`/conversations/${currentConversationIdRef.current}/messages/`);
-        let data: any[] = Array.isArray(response.data) ? response.data :
-          response.data?.results || [];
+        let data: any[] = [];
+        
+        if (response.data && response.data.results) {
+          data = response.data.results;
+        } else if (Array.isArray(response.data)) {
+          data = response.data;
+        }
 
         console.log('🔄 POLLING: Raw server data count:', data.length);
-        console.log('🔄 POLLING: Message IDs from server:', data.map((m: any) => m.id).join(', '));
 
         const serverMessages = data
           .map(validateMessage)
@@ -415,27 +492,23 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentMessages(prev => {
           // Keep pending messages (optimistic updates)
           const pending = prev.filter(m => m.pending);
+          const serverIds = new Set(serverMessages.map(m => m.id));
 
-          if (pending.length > 0) {
-            const serverIds = new Set(serverMessages.map(m => m.id));
-            const stillPending = pending.filter(p => !serverIds.has(p.id));
-            const merged = [...serverMessages, ...stillPending];
-            merged.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-            // Update cache
+          // Merge polled messages with existing ones in state to preserve older paginated history
+          const existingOlder = prev.filter(m => !serverIds.has(m.id));
+          const stillPending = pending.filter(p => !serverIds.has(p.id));
+          const merged = [...existingOlder, ...serverMessages, ...stillPending];
+          merged.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+          // Check if anything actually changed
+          const changed = prev.length !== merged.length ||
+            prev.some((msg, idx) => msg.id !== merged[idx]?.id || msg.is_read !== merged[idx]?.is_read);
+
+          if (changed) {
             if (currentConversationIdRef.current) {
               messageCacheRef.current.set(currentConversationIdRef.current, merged);
             }
             return merged;
-          }
-
-          // No pending messages, update if changed
-          if (prev.length !== serverMessages.length ||
-            prev[prev.length - 1]?.id !== serverMessages[serverMessages.length - 1]?.id) {
-            // Update cache
-            if (currentConversationIdRef.current) {
-              messageCacheRef.current.set(currentConversationIdRef.current, serverMessages);
-            }
-            return serverMessages;
           }
           return prev;
         });
@@ -456,9 +529,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       currentMessages,
       isLoading,
       isRefreshing,
+      isLoadingMore,
+      hasMoreMessages: !!nextPageUrl,
       currentConversationId,
       fetchConversations,
       loadMessages,
+      loadMoreMessages,
       sendMessage,
       joinConversation,
       leaveConversation,

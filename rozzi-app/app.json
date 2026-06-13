@@ -5,7 +5,7 @@
     "owner": "setunajobs",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/rozzi_icon0.png",
     "scheme": "rozziapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -19,8 +19,8 @@
     "android": {
       "package": "com.niratma.rozzi",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/rozzi_icon0.png",
+        "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
       "runtimeVersion": "1.0.0"

@@ -58,6 +58,9 @@ export default function ChatScreen() {
     conversations,
     isLoading,
     isRefreshing,
+    isLoadingMore,
+    hasMoreMessages,
+    loadMoreMessages,
     markAsRead,
     refreshMessages,
   } = useChat();
@@ -251,6 +254,14 @@ export default function ChatScreen() {
     await refreshMessages();
   }, [refreshMessages]);
 
+  // Handle scrolling to top to load older messages
+  const handleScroll = useCallback((event: any) => {
+    const { y } = event.nativeEvent.contentOffset;
+    if (y < 20 && hasMoreMessages && !isLoadingMore && !isLoading && !isRefreshing) {
+      loadMoreMessages();
+    }
+  }, [hasMoreMessages, isLoadingMore, isLoading, isRefreshing, loadMoreMessages]);
+
   // ============================================
   // RENDER CLICKABLE LINKS IN MESSAGE
   // ============================================
@@ -412,6 +423,8 @@ export default function ChatScreen() {
         contentContainerStyle={s.msgListContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -421,6 +434,13 @@ export default function ChatScreen() {
           />
         }
       >
+        {isLoadingMore && (
+          <ActivityIndicator 
+            size="small" 
+            color="#7C3AED" 
+            style={{ marginVertical: 12, alignSelf: 'center' }} 
+          />
+        )}
         {(isScreenLoading || isLoading) && currentMessages.length === 0 ? (
           <Animated.View style={[s.skeletonContainer, { opacity: pulseAnim }]}>
             {/* Bubble 1: Other participant (Left) */}

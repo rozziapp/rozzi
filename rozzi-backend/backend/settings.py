@@ -42,6 +42,7 @@ def get_local_ip():
     try:
         # Connect to a remote address to get local IP
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(1.0)
         s.connect(("8.8.8.8", 80))
         local_ip = s.getsockname()[0]
         s.close()
@@ -86,6 +87,20 @@ else:
 
     # Remove duplicates and sort
     ALLOWED_HOSTS = sorted(list(set(ALLOWED_HOSTS)))
+
+# Automatically detect and append Render hostname if deployed on Render
+RENDER_EXTERNAL_HOSTNAME = config('RENDER_EXTERNAL_HOSTNAME', default=None)
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    ALLOWED_HOSTS = sorted(list(set(ALLOWED_HOSTS)))
+
+# CSRF Trusted Origins for Django Admin panel security
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
 
 print(f"[Settings] Django ALLOWED_HOSTS configured for: {ALLOWED_HOSTS}")
 
@@ -151,37 +166,47 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Production: Set DATABASE_URL env var (e.g. postgresql://user:pass@host:5432/dbname)
 # Development: Falls back to SQLite automatically
 
-DATABASE_URL = config('DATABASE_URL', default=None)
+DATABASE_URL = config('DATABASE_URL', default='postgresql://postgres:postgres@127.0.0.1:5432/rozzi')
 
+# We only allow SQLite fallback in local development (DEBUG=True) when using a local database host
+is_local_db = '127.0.0.1' in DATABASE_URL or 'localhost' in DATABASE_URL
+allow_fallback = DEBUG and is_local_db
+
+use_sqlite_fallback = False
 if DATABASE_URL and dj_database_url:
-    # Production — PostgreSQL via DATABASE_URL (Railway, AWS RDS, etc.)
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-            engine='django.db.backends.postgresql',
-        )
-    }
-    print(f"[Settings] Database: PostgreSQL (via DATABASE_URL)")
-elif dj_database_url and not DATABASE_URL:
-    # dj_database_url installed but no DATABASE_URL — local dev with SQLite
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+    try:
+        import psycopg2
+        # Try to connect with a short timeout to see if PostgreSQL is available
+        conn = psycopg2.connect(DATABASE_URL, connect_timeout=2)
+        conn.close()
+        
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+                engine='django.db.backends.postgresql',
+            )
         }
-    }
-    print(f"[Settings] Database: SQLite (local development)")
+        print(f"[Settings] Database: PostgreSQL (via DATABASE_URL)")
+    except Exception as e:
+        if allow_fallback:
+            print(f"[Settings] Local PostgreSQL connection check failed: {e}. Falling back to SQLite.")
+            use_sqlite_fallback = True
+        else:
+            print(f"[Settings] CRITICAL: PostgreSQL connection failed: {e}. Strict mode (no SQLite fallback in production).")
+            raise e
 else:
-    # Fallback — no dj_database_url installed at all
+    use_sqlite_fallback = True
+
+if use_sqlite_fallback or not dj_database_url:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-    print(f"[Settings] Database: SQLite (fallback)")
+    print(f"[Settings] Database: SQLite (local development fallback)")
 
 
 # Password validation
