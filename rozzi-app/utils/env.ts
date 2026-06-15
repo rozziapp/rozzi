@@ -5,6 +5,9 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
+// Set to true to test the live Render backend inside local Expo Go development
+const USE_LIVE_BACKEND_IN_DEV = false;
+
 // Cache key for storing detected IP
 const IP_CACHE_KEY = '@backend_ip_address';
 
@@ -85,13 +88,17 @@ export const ENV_CONFIG = {
 
   // Production settings
   production: {
-    BASE_URL: 'https://your-domain.com',
+    BASE_URL: 'https://rozzi-backend.onrender.com',
     API_PATH: '/api',
   }
 };
 
 // Function to get the full backend URL for development
 export const getBackendURL = (): string => {
+  if (USE_LIVE_BACKEND_IN_DEV) {
+    const { BASE_URL, API_PATH } = ENV_CONFIG.production;
+    return `${BASE_URL}${API_PATH}`;
+  }
   if (__DEV__) {
     const { LOCAL_IP, BACKEND_PORT, API_PATH } = ENV_CONFIG.development;
     return `http://${LOCAL_IP}:${BACKEND_PORT}${API_PATH}`;
@@ -103,6 +110,10 @@ export const getBackendURL = (): string => {
 
 // Function to get the backend base URL without API path (for health checks)
 export const getBackendBaseURL = (): string => {
+  if (USE_LIVE_BACKEND_IN_DEV) {
+    const { BASE_URL } = ENV_CONFIG.production;
+    return BASE_URL;
+  }
   if (__DEV__) {
     const { LOCAL_IP, BACKEND_PORT } = ENV_CONFIG.development;
     return `http://${LOCAL_IP}:${BACKEND_PORT}`;
