@@ -1384,7 +1384,7 @@ export default function HomeScreen() {
       {/* Top Bar - Same color as container */}
       <View style={[styles.topBar, { backgroundColor: colors.brandBackground, paddingTop: Math.max(insets.top + 6, 30) }]}>
         <View style={styles.leftContainer}>
-          <Text style={[styles.appName, { color: '#fff', fontFamily: 'Outfit-ExtraBold' }]}>Rozzi</Text>
+          <Text style={[styles.appName, { color: colorScheme === 'dark' ? '#fff' : colors.primary, fontFamily: 'Outfit-ExtraBold' }]}>Rozzi</Text>
         </View>
 
         <Animated.View
@@ -1399,7 +1399,9 @@ export default function HomeScreen() {
             style={[
               styles.searchContainer,
               {
-                backgroundColor: isSearchFocused ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: colorScheme === 'dark'
+                  ? (isSearchFocused ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.2)')
+                  : (isSearchFocused ? '#ffffff' : 'rgba(0, 0, 0, 0.05)'),
                 width: searchWidthAnim,
                 height: searchHeightAnim,
                 paddingHorizontal: searchPaddingAnim,
@@ -1410,7 +1412,9 @@ export default function HomeScreen() {
                 shadowRadius: isSearchFocused ? 8 : 0,
                 elevation: isSearchFocused ? 8 : 0,
                 borderWidth: isSearchFocused ? 1 : 0,
-                borderColor: isSearchFocused ? 'rgba(255, 255, 255, 0.3)' : 'transparent',
+                borderColor: colorScheme === 'dark'
+                  ? (isSearchFocused ? 'rgba(255, 255, 255, 0.3)' : 'transparent')
+                  : (isSearchFocused ? colors.primary : 'transparent'),
               }
             ]}
           >
@@ -1418,7 +1422,7 @@ export default function HomeScreen() {
               <Ionicons
                 name="search"
                 size={isSearchFocused ? 18 : 16}
-                color="#fff"
+                color={colorScheme === 'dark' ? '#fff' : (isSearchFocused ? colors.primary : colors.textSecondary)}
               />
             </Animated.View>
             <TextInput
@@ -1426,7 +1430,7 @@ export default function HomeScreen() {
               style={[
                 styles.searchInput,
                 {
-                  color: '#fff',
+                  color: colorScheme === 'dark' ? '#fff' : colors.text,
                   fontSize: isSearchFocused ? 16 : 14,
                   fontWeight: isSearchFocused ? '500' : '400',
                   paddingVertical: 0,
@@ -1434,7 +1438,7 @@ export default function HomeScreen() {
                 }
               ]}
               placeholder="Search jobs..."
-              placeholderTextColor="rgba(255, 255, 255, 0.7)"
+              placeholderTextColor={colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.45)'}
               value={searchQuery}
               onChangeText={setSearchQuery}
               onFocus={handleSearchFocus}
@@ -1451,19 +1455,19 @@ export default function HomeScreen() {
             style={styles.iconButton}
             onPress={() => handleNavigation(() => router.push('/find-users'))}
           >
-            <Ionicons name="person-add-outline" size={25} color={colorScheme === 'dark' ? '#fff' : '#fff'} />
+            <Ionicons name="person-add-outline" size={25} color={colorScheme === 'dark' ? '#fff' : colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.iconButton}
             onPress={() => handleNavigation(() => setShowFilterModal(true))}
           >
-            <Ionicons name="filter" size={25} color={colorScheme === 'dark' ? '#fff' : '#fff'} />
+            <Ionicons name="filter" size={25} color={colorScheme === 'dark' ? '#fff' : colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.iconButton}
             onPress={() => handleNavigation(() => router.push('/inbox'))}
           >
-            <Ionicons name="mail-outline" size={25} color={colorScheme === 'dark' ? '#fff' : '#fff'} />
+            <Ionicons name="mail-outline" size={25} color={colorScheme === 'dark' ? '#fff' : colors.primary} />
             {/* Message badge (top right) */}
             {totalUnreadMessages > 0 && (
               <View style={styles.messageBadge}>

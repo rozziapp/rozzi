@@ -9,10 +9,10 @@ export const Colors = {
   light: {
     text: '#111827',
     textSecondary: '#6b7280',
-    background: '#F7F7FA',
-    brandBackground: '#F3F1FA',
+    background: '#F2F0F9',
+    brandBackground: '#E8E5F4',
     card: '#ffffff',
-    cardAlt: '#f9fafb',
+    cardAlt: '#F5F3FA',
     tint: tintColorLight,
     icon: '#6b7280',
     tabIconDefault: '#9ca3af',

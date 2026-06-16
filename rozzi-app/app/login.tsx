@@ -14,8 +14,7 @@ import { useCustomFonts } from '@/hooks/fonts';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 
 // Ensure web browser dismisses properly
@@ -24,17 +23,15 @@ WebBrowser.maybeCompleteAuthSession();
 // Web Client ID from Google Cloud Console
 const WEB_CLIENT_ID = '370990896857-t1gnvm3c4n2apfu4ugpr9ccpoae580qd.apps.googleusercontent.com';
 
-// iOS Client ID from Google Cloud Console (Configure this when building for iOS)
-const IOS_CLIENT_ID = '';
+// Configure Google Sign-In SDK
+GoogleSignin.configure({
+  webClientId: WEB_CLIENT_ID,
+  offlineAccess: true,
+});
 
 // Determine if we're running in Expo Go (vs a development/standalone build)
 const isExpoGo = Constants.appOwnership === 'expo';
 
-// Redirect URI: uses the custom scheme registered in app.json
-// This only works in development builds / standalone — NOT in Expo Go
-const EXPO_REDIRECT_URI = makeRedirectUri({ scheme: 'rozziapp' });
-
-console.log('🔑 Google OAuth redirect URI:', EXPO_REDIRECT_URI);
 console.log('🔑 Running in Expo Go:', isExpoGo);
 
 export default function LoginScreen() {
@@ -42,47 +39,30 @@ export default function LoginScreen() {
   const { loginWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use Google auth hook (only functional in dev builds, not Expo Go)
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: WEB_CLIENT_ID,
-    androidClientId: '370990896857-1mlsie4r8s30jc8753u5tbdcath60pkv.apps.googleusercontent.com',
-    iosClientId: IOS_CLIENT_ID || undefined,
-    redirectUri: EXPO_REDIRECT_URI,
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      if (id_token) {
-        console.log('Got ID token from Google');
-        handleGoogleLogin(id_token);
+  const handleRealGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      const idToken = response.data?.idToken || (response as any).idToken;
+      if (idToken) {
+        console.log('Got ID token from Google Sign-In SDK');
+        handleGoogleLogin(idToken);
       } else {
         Alert.alert('Error', 'No ID token received from Google');
         setIsLoading(false);
       }
-    } else if (response?.type === 'error') {
-      console.error('Google auth error:', response.error);
-      Alert.alert('Authentication Error', response.error?.message || 'Google sign in failed');
-      setIsLoading(false);
-    } else if (response?.type === 'cancel' || response?.type === 'dismiss') {
-      setIsLoading(false);
-    }
-  }, [response]);
-
-  const handleRealGoogleSignIn = async () => {
-    if (isExpoGo) {
-      Alert.alert(
-        'Expo Go Limitation',
-        'Google Sign-In requires a development build.\n\nUse the "Simulate Login" buttons below for testing, or run:\nnpx expo run:android',
-      );
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await promptAsync();
     } catch (error: any) {
       console.error('Google Sign-In error:', error);
-      Alert.alert('Error', 'Could not start Google Sign-In: ' + error.message);
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // in progress
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Play Services Error', 'Google Play Services not available or outdated.');
+      } else {
+        Alert.alert('Authentication Error', error.message || 'Google sign in failed');
+      }
       setIsLoading(false);
     }
   };
@@ -130,9 +110,9 @@ export default function LoginScreen() {
 
         {/* Google Sign-In Button */}
         <TouchableOpacity
-          style={[styles.googleButton, (!request || isLoading) && styles.disabledButton]}
+          style={[styles.googleButton, isLoading && styles.disabledButton]}
           onPress={handleRealGoogleSignIn}
-          disabled={!request || isLoading}
+          disabled={isLoading}
         >
           {isLoading ? (
             <ActivityIndicator color="#fff" />
@@ -143,10 +123,6 @@ export default function LoginScreen() {
             </>
           )}
         </TouchableOpacity>
-
-        {!request && (
-          <Text style={styles.loadingText}>Initializing Google Sign-In...</Text>
-        )}
 
         {/* Disclaimer / Terms Link */}
         <Text style={styles.disclaimerText}>

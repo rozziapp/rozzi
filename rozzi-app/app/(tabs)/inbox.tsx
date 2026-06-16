@@ -659,7 +659,9 @@ export default function InboxScreen() {
               renderNotificationSkeleton()
             ) : (!getFilteredNotifications() || getFilteredNotifications().length === 0) ? (
               <View style={styles.emptyState}>
-                <Ionicons name="notifications-off-outline" size={48} color={colors.textSecondary} />
+                <View style={[styles.iconContainer, { backgroundColor: colors.brandBackground }]}>
+                  <Ionicons name="notifications-off-outline" size={32} color={colors.primary} />
+                </View>
                 <Text style={styles.emptyStateText}>
                   {notifications.length === 0 ? 'No notifications yet' : 'No notifications match your filters'}
                 </Text>
@@ -721,7 +723,9 @@ export default function InboxScreen() {
               renderConversationSkeleton()
             ) : filteredConversations.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons name="chatbubbles-outline" size={48} color={colors.textSecondary} />
+                <View style={[styles.iconContainer, { backgroundColor: colors.brandBackground }]}>
+                  <Ionicons name="chatbubbles-outline" size={32} color={colors.primary} />
+                </View>
                 <Text style={styles.emptyStateText}>No conversations yet</Text>
                 <Text style={styles.emptyStateSubtext}>
                   Start a conversation by messaging someone from their profile
@@ -1187,24 +1191,43 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 50,
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+    backgroundColor: colors.card,
+    borderRadius: 24,
     marginTop: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
+    shadowColor: colors.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
   },
   emptyStateText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: colors.text,
-    marginTop: 15,
+    marginTop: 16,
+    textAlign: 'center',
   },
   emptyStateSubtext: {
     fontSize: 14,
     color: colors.textSecondary,
-    marginTop: 5,
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 16,
+  },
+  iconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   // Modal styles
   modalOverlay: {
@@ -1328,12 +1351,12 @@ const getStyles = (colors: any) => StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.cardAlt,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
   },
   modalSearchInput: {
     flex: 1,
@@ -1360,11 +1383,11 @@ const getStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.cardAlt,
     borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
   },
   userResultInfo: {
     flex: 1,
@@ -1390,7 +1413,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     marginTop: 24,
     paddingTop: 24,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: colors.border,
   },
   instructionText: {
     fontSize: 14,

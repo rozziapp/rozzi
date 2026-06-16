@@ -28,6 +28,14 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="rozziapp"/>
+        <data android:scheme="exp+rozzi"/>
+      </intent-filter>
+      <intent-filter data-generated="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="com.googleusercontent.apps.370990896857-1mlsie4r8s30jc8753u5tbdcath60pkv"/>
+        <data android:scheme="exp+rozzi"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
       </intent-filter>
     </activity>
   </application>

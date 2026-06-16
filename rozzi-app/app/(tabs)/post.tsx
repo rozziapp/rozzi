@@ -774,7 +774,7 @@ export default function PostScreen() {
       {/* ── Section 4: Description ── */}
       <SectionCard zIndex={20}>
         <SectionHeader icon="document-text-outline" label="DESCRIPTION" />
-        <FieldLabel label="Job Description" />
+        <FieldLabel label="Job Description" required />
         <TextInput
           style={[s.input, s.textArea]}
           placeholder="Tell candidates about the role, responsibilities, perks..."

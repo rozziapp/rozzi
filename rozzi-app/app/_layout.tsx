@@ -2,8 +2,9 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack, router, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { BackHandler, Platform, LogBox, View, ActivityIndicator, Text } from 'react-native';
-import { useEffect } from 'react';
+import { BackHandler, Platform, LogBox, View, ActivityIndicator, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -14,6 +15,7 @@ import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeAppConnectivity } from '@/utils/startupConnectivity';
 import { AppThemeProvider, useAppTheme } from '@/contexts/ThemeContext';
+import { setAlertListener } from '@/utils/Alert';
 
 // Suppress React Native Web specific deprecation warnings
 // These are web-only warnings that don't affect native iOS/Android functionality
@@ -80,6 +82,41 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 function InnerLayout() {
   const { colorScheme, colors } = useAppTheme();
   const pathname = usePathname();
+
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    buttons?: any[];
+  }>({
+    visible: false,
+    title: '',
+  });
+
+  useEffect(() => {
+    setAlertListener((config: any) => {
+      setAlertConfig({
+        visible: true,
+        title: config.title,
+        message: config.message,
+        buttons: config.buttons,
+      });
+    });
+    return () => {
+      setAlertListener(null);
+    };
+  }, []);
+
+  const buttons = alertConfig.buttons && alertConfig.buttons.length > 0
+    ? alertConfig.buttons
+    : [{ text: 'OK', onPress: () => {} }];
+
+  const handleButtonPress = (btnOnPress?: () => void) => {
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+    if (btnOnPress) {
+      btnOnPress();
+    }
+  };
 
   // Handle Android back button
   useEffect(() => {
@@ -155,7 +192,7 @@ function InnerLayout() {
   
   // Choose status bar content based on the background color and theme
   // Dark theme usually requires light content status bar, and vice-versa
-  const statusBarStyle = colorScheme === 'dark' ? 'light' : (isLightPage ? 'dark' : 'light');
+  const statusBarStyle = colorScheme === 'dark' ? 'light' : 'dark';
 
   // ChatProvider/NotificationProvider are always mounted to keep the
   // component tree shape stable (prevents remount on auth state change).
@@ -200,6 +237,68 @@ function InnerLayout() {
 
           <Stack.Screen name="+not-found" />
         </Stack>
+        
+        {/* Global Custom Themed Alert Modal */}
+        <Modal
+          visible={alertConfig.visible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+        >
+          <View style={alertStyles.overlay}>
+            <View style={[alertStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[
+                alertStyles.iconBg,
+                { backgroundColor: colorScheme === 'dark' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(107, 70, 193, 0.08)' }
+              ]}>
+                <Ionicons 
+                  name={getAlertIconName(alertConfig.title, alertConfig.message) as any} 
+                  size={38} 
+                  color={getAlertIconColor(alertConfig.title, alertConfig.message, colors)} 
+                />
+              </View>
+
+              <Text style={[alertStyles.title, { color: colors.text }]}>{alertConfig.title}</Text>
+              {alertConfig.message ? (
+                <Text style={[alertStyles.message, { color: colors.textSecondary }]}>{alertConfig.message}</Text>
+              ) : null}
+
+              <View style={[
+                alertStyles.buttonsContainer,
+                buttons.length > 2 && { flexDirection: 'column' }
+              ]}>
+                {buttons.map((btn, index) => {
+                  const isDestructive = btn.style === 'destructive';
+                  const isCancel = btn.style === 'cancel';
+                  
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        alertStyles.button,
+                        isDestructive && alertStyles.buttonDestructive,
+                        isCancel && [alertStyles.buttonCancel, { borderColor: colors.border }],
+                        !isDestructive && !isCancel && [alertStyles.buttonPrimary, { backgroundColor: colors.primary }],
+                        buttons.length > 2 && { width: '100%', marginBottom: 8 }
+                      ]}
+                      onPress={() => handleButtonPress(btn.onPress)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[
+                        alertStyles.buttonText,
+                        isCancel && { color: colors.textSecondary },
+                        !isCancel && { color: '#ffffff' }
+                      ]}>
+                        {btn.text || 'OK'}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+        </Modal>
+
         <StatusBar
           style={statusBarStyle as any}
           backgroundColor={statusBarColor}
@@ -280,3 +379,94 @@ function ThemeAwareRoot() {
     </ThemeProvider>
   );
 }
+
+function getAlertIconName(title: string, message?: string): string {
+  const combined = `${title} ${message || ''}`.toLowerCase();
+  if (combined.includes('success') || combined.includes('activated') || combined.includes('saved') || combined.includes('completed')) {
+    return 'checkmark-circle';
+  }
+  if (combined.includes('error') || combined.includes('failed') || combined.includes('invalid') || combined.includes('missing') || combined.includes('limit') || combined.includes('warning') || combined.includes('cannot')) {
+    return 'warning';
+  }
+  return 'information-circle';
+}
+
+function getAlertIconColor(title: string, message: string | undefined, colors: any): string {
+  const combined = `${title} ${message || ''}`.toLowerCase();
+  if (combined.includes('success') || combined.includes('activated') || combined.includes('saved') || combined.includes('completed')) {
+    return colors.success;
+  }
+  if (combined.includes('error') || combined.includes('failed') || combined.includes('invalid') || combined.includes('missing') || combined.includes('limit') || combined.includes('warning') || combined.includes('cannot')) {
+    return '#ef4444';
+  }
+  return colors.primary;
+}
+
+const alertStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    borderRadius: 24,
+    padding: 24,
+    width: '85%',
+    maxWidth: 340,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+    borderWidth: 1,
+  },
+  iconBg: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  button: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonPrimary: {
+    // backgroundColor assigned dynamically
+  },
+  buttonCancel: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+  },
+  buttonDestructive: {
+    backgroundColor: '#ef4444',
+  },
+  buttonText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+});

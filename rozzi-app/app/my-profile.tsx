@@ -89,7 +89,7 @@ export default function MyProfileScreen() {
   const { colors, colorScheme } = useAppTheme();
   const styles = React.useMemo(() => getStyles(colors, colorScheme), [colors, colorScheme]);
   const insets = useSafeAreaInsets();
-  const { user, isAuthenticated, isLoading, updateUserData } = useAuth();
+  const { user, isAuthenticated, isLoading, updateUserData, reloadUserProfile } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -526,6 +526,9 @@ export default function MyProfileScreen() {
       const response = await API.put('/me/', updateData);
 
       if (response.status === 200) {
+        // Refresh AuthContext user state to sync with backend updates (first/last/full_name)
+        await reloadUserProfile();
+
         // Update local state with new data
         setUserInfo(prev => ({
           ...prev,

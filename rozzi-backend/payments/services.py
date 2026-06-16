@@ -93,12 +93,11 @@ def timestamp_to_datetime(ts):
         return None
     return datetime.datetime.fromtimestamp(ts, tz=datetime.timezone.utc)
 
-def cancel_razorpay_subscription(subscription_id):
-    """Cancels a subscription on Razorpay immediately."""
+def cancel_razorpay_subscription(subscription_id, cancel_at_cycle_end=1):
+    """Cancels a subscription on Razorpay."""
     client = get_razorpay_client()
     try:
-        # cancel_at_cycle_end=0 means cancel immediately
-        client.subscription.cancel(subscription_id, {"cancel_at_cycle_end": 0})
+        client.subscription.cancel(subscription_id, {"cancel_at_cycle_end": cancel_at_cycle_end})
         return True
     except Exception as e:
         print(f"Error cancelling Razorpay subscription {subscription_id}: {e}")
@@ -141,7 +140,9 @@ def check_and_sync_subscription(user):
             
             # Check if active
             # Razorpay subscription statuses: created, authenticated, active, pending, halted, cancelled, expired
-            if status in ['active', 'authenticated']:
+            # Cancelled subscriptions remain active until the end of the paid billing cycle
+            is_valid_period = sub.current_end and timezone.now() < sub.current_end
+            if status in ['active', 'authenticated'] or (status == 'cancelled' and is_valid_period):
                 sub.is_active = True
                 has_active = True
                 active_plan = sub.plan_name
@@ -164,3 +165,25 @@ def check_and_sync_subscription(user):
         
     profile.save(update_fields=['is_premium', 'subscription_active', 'subscription_plan'])
     return has_active
+
+def sync_profile_from_local_subscriptions(user):
+    """
+    Updates the UserProfile subscription fields based on local Subscription records,
+    without making external Razorpay API requests.
+    """
+    profile = getattr(user, 'profile', None)
+    if not profile:
+        return
+        
+    active_sub = Subscription.objects.filter(user=user, is_active=True).order_by('-created_at').first()
+    if active_sub:
+        profile.is_premium = True
+        # If the subscription is active, its auto-renew active status matches whether it's not cancelled
+        profile.subscription_active = (active_sub.status in ['active', 'authenticated'])
+        profile.subscription_plan = active_sub.plan_name
+    else:
+        profile.is_premium = False
+        profile.subscription_active = False
+        profile.subscription_plan = 'free'
+        
+    profile.save(update_fields=['is_premium', 'subscription_active', 'subscription_plan'])

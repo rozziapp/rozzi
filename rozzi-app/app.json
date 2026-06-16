@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "rozzi",
+    "name": "Rozzi",
     "slug": "rozzi",
     "owner": "setunajobs",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/rozzi_icon0.png",
+    "icon": "./assets/images/adaptive-icon.png",
     "scheme": "rozziapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -19,9 +19,23 @@
     "android": {
       "package": "com.niratma.rozzi",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/rozzi_icon0.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "com.googleusercontent.apps.370990896857-1mlsie4r8s30jc8753u5tbdcath60pkv"
+            }
+          ]
+        }
+      ],
       "edgeToEdgeEnabled": true,
       "runtimeVersion": "1.0.0"
     },
@@ -43,7 +57,8 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-notifications"
+      "expo-notifications",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

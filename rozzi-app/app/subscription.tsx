@@ -303,7 +303,7 @@ export default function SubscriptionScreen() {
   const handleCancelSubscription = () => {
     showCustomAlert(
       'Cancel Subscription',
-      'Are you sure you want to cancel your premium subscription? AutoPay will be stopped immediately and premium privileges will be removed.',
+      'Are you sure you want to cancel your premium subscription? AutoPay will be stopped immediately and premium auto-renewal will end, but you will keep premium benefits until the end of your current billing cycle.',
       'confirm',
       [
         { text: 'Keep Premium', style: 'cancel' },
@@ -317,12 +317,12 @@ export default function SubscriptionScreen() {
               const response = await API.post('/payments/cancel-subscription/');
               if (response.status === 200) {
                 await reloadUserProfile();
-                showCustomAlert('Downgraded', 'Your subscription has been successfully cancelled.', 'success');
+                showCustomAlert('Subscription Cancelled', 'Your subscription has been cancelled. You will continue to have premium access until the end of your current billing cycle.', 'success');
               } else {
                 showCustomAlert('Error', response.data?.error || 'Failed to cancel subscription.', 'error');
               }
-            } catch (err) {
-              console.error(err);
+            } catch (error) {
+              console.error('Error cancelling subscription:', error);
               showCustomAlert('Error', 'An error occurred while communicating with the cancellation service.', 'error');
             } finally {
               setIsUpdating(false);
@@ -410,7 +410,13 @@ export default function SubscriptionScreen() {
       buttonText: currentPlanId === 'recruiter_99' ? 'Current Plan' : 'Subscribe Recruiter 99',
       buttonAction: () => currentPlanId !== 'recruiter_99' && handleUpgrade({ id: 'recruiter_99', name: 'Recruiter 99', price: '₹99', period: 'month' } as any)
     }
-  ];
+  ].filter(plan => {
+    // If the user has recruiter_99, hide the seeker_29 option as they don't need a downgrade option here
+    if (currentPlanId === 'recruiter_99' && plan.id === 'seeker_29') {
+      return false;
+    }
+    return true;
+  });
 
   if (!fontsLoaded) {
     return null;
@@ -622,7 +628,7 @@ export default function SubscriptionScreen() {
           
           <View style={styles.faqItem}>
             <Text style={styles.faqQuestion}>Can I cancel my subscription?</Text>
-            <Text style={styles.faqAnswer}>Yes. You can cancel your monthly subscription at any time. Simply tap "Manage AutoPay & Billing Details" below your active plan (or the card icon at the top right) and press "Cancel Subscription". AutoPay will be stopped immediately.</Text>
+            <Text style={styles.faqAnswer}>Yes. You can cancel your monthly subscription at any time. Simply tap {"\""}Manage AutoPay & Billing Details{"\""} below your active plan (or the card icon at the top right) and press {"\""}Cancel Subscription{"\""}. AutoPay will be stopped immediately.</Text>
           </View>
           
           <View style={styles.faqItem}>
@@ -770,9 +776,16 @@ export default function SubscriptionScreen() {
                         </Text>
                       </View>
                       <View style={styles.subDetailRow}>
-                        <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-                        <Text style={[styles.subDetailText, { color: colors.success, fontWeight: '600' }]}>
-                          AutoPay Active (Recurring)
+                        <Ionicons 
+                          name={billingDetails?.subscription_active ? "checkmark-circle" : "close-circle"} 
+                          size={14} 
+                          color={billingDetails?.subscription_active ? colors.success : "#ef4444"} 
+                        />
+                        <Text style={[
+                          styles.subDetailText, 
+                          { color: billingDetails?.subscription_active ? colors.success : "#ef4444", fontWeight: '600' }
+                        ]}>
+                          {billingDetails?.subscription_active ? "AutoPay Active (Recurring)" : "Cancellation Pending (Expires soon)"}
                         </Text>
                       </View>
                     </View>
@@ -780,12 +793,12 @@ export default function SubscriptionScreen() {
                 </View>
 
                 {/* Cancellation trigger */}
-                {billingDetails?.active_plan !== 'free' && (
+                {billingDetails?.active_plan !== 'free' && billingDetails?.subscription_active && (
                   <TouchableOpacity
                     style={styles.cancelSubscriptionBtn}
                     onPress={handleCancelSubscription}
                   >
-                    <Ionicons name="close-circle-outline" size={20} color="#fff" />
+                    <Ionicons name="close-circle-outline" size={20} color="#ef4444" />
                     <Text style={styles.cancelSubscriptionBtnText}>Cancel Subscription</Text>
                   </TouchableOpacity>
                 )}
@@ -1275,7 +1288,9 @@ const getStyles = (colors: any, colorScheme: 'light' | 'dark') => StyleSheet.cre
     color: colors.textSecondary,
   },
   cancelSubscriptionBtn: {
-    backgroundColor: '#ef4444',
+    backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1285,9 +1300,9 @@ const getStyles = (colors: any, colorScheme: 'light' | 'dark') => StyleSheet.cre
     marginBottom: 24,
   },
   cancelSubscriptionBtnText: {
-    color: '#fff',
+    color: '#ef4444',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   historySectionTitle: {
     fontSize: 15,

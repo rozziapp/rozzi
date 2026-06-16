@@ -117,18 +117,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(null);
           }
         } catch (tokenError: any) {
-          if (tokenError.response?.status === 401 &&
-            tokenError.response?.data?.detail?.includes('Token is expired')) {
-            console.log('Token expired during startup - clearing expired tokens');
+          // If the error is an explicit 401 or 403, the session is definitely invalid, so clear it.
+          const isAuthError = tokenError.response && (tokenError.response.status === 401 || tokenError.response.status === 403);
+          
+          if (isAuthError) {
+            if (tokenError.response?.status === 401 &&
+              tokenError.response?.data?.detail?.includes('Token is expired')) {
+              console.log('Token expired during startup - clearing expired tokens');
+            } else {
+              console.log('Token validation failed with authentication error. Clearing tokens.');
+            }
+            await clearAllTokens();
+            setToken(null);
+            setUser(null);
           } else {
-            console.log('⚠️ Backend unreachable during startup — clearing tokens for clean start');
+            // It's a network timeout, abort error, or server error. Do NOT log the user out!
+            // Restoring cached session so the app remains usable.
+            console.log('⚠️ Backend unreachable or request timed out. Restoring cached session.');
+            setToken(storedToken);
+            try {
+              setUser(JSON.parse(storedUser));
+            } catch (e) {
+              setUser(null);
+            }
           }
-          // In ALL error cases (network, expired, unexpected), clear tokens
-          // and let the user log in again when the backend is reachable.
-          // This prevents the app from showing a broken home screen.
-          await clearAllTokens();
-          setToken(null);
-          setUser(null);
         }
       } else {
         console.log('No stored tokens found');

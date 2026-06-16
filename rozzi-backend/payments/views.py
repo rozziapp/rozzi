@@ -15,7 +15,8 @@ from payments.services import (
     get_or_create_customer,
     cancel_razorpay_subscription,
     check_and_sync_subscription,
-    timestamp_to_datetime
+    timestamp_to_datetime,
+    sync_profile_from_local_subscriptions
 )
 
 class CreateSubscriptionView(APIView):
@@ -44,6 +45,17 @@ class CreateSubscriptionView(APIView):
             
             # 2. Get or create customer ID
             customer_id = get_or_create_customer(request.user)
+            
+            # Cancel any existing active/pending subscription immediately on upgrade/plan switch
+            existing_subs = Subscription.objects.filter(user=request.user).exclude(status__in=['cancelled', 'expired'])
+            for old_sub in existing_subs:
+                try:
+                    cancel_razorpay_subscription(old_sub.razorpay_subscription_id, cancel_at_cycle_end=0)
+                    old_sub.status = 'cancelled'
+                    old_sub.is_active = False
+                    old_sub.save()
+                except Exception as ex:
+                    print(f"Failed to cancel old subscription {old_sub.razorpay_subscription_id} on upgrade: {ex}")
             
             # 3. Create subscription on Razorpay
             client = get_razorpay_client()
@@ -99,18 +111,25 @@ class CancelSubscriptionView(APIView):
         if not subscription:
             return Response({'error': 'No active subscription found'}, status=status.HTTP_404_NOT_FOUND)
             
-        success = cancel_razorpay_subscription(subscription.razorpay_subscription_id)
+        success = cancel_razorpay_subscription(subscription.razorpay_subscription_id, cancel_at_cycle_end=1)
         if success:
             subscription.status = 'cancelled'
-            subscription.is_active = False
+            
+            # Keep subscription active locally until the current cycle expires
+            is_valid_period = subscription.current_end and timezone.now() < subscription.current_end
+            subscription.is_active = is_valid_period
             subscription.save()
             
             # Update user profile
             profile = getattr(user, 'profile', None)
             if profile:
-                profile.is_premium = False
-                profile.subscription_active = False
-                profile.subscription_plan = 'free'
+                if is_valid_period:
+                    profile.is_premium = True
+                    profile.subscription_active = False # Will not auto-renew
+                else:
+                    profile.is_premium = False
+                    profile.subscription_active = False
+                    profile.subscription_plan = 'free'
                 profile.save(update_fields=['is_premium', 'subscription_active', 'subscription_plan'])
                 
             return Response({'message': 'Subscription cancelled successfully'}, status=status.HTTP_200_OK)
@@ -206,11 +225,8 @@ class RazorpayWebhookView(APIView):
                 sub.current_end = timestamp_to_datetime(subscription_payload.get('current_end'))
                 sub.save()
                 
-                # Activate premium in profile
-                profile.is_premium = True
-                profile.subscription_active = True
-                profile.subscription_plan = sub.plan_name
-                profile.save(update_fields=['is_premium', 'subscription_active', 'subscription_plan'])
+                # Sync profile with local active subscriptions
+                sync_profile_from_local_subscriptions(user)
                 
             elif event_name == 'subscription.charged':
                 sub.status = 'active'
@@ -219,11 +235,8 @@ class RazorpayWebhookView(APIView):
                 sub.current_end = timestamp_to_datetime(subscription_payload.get('current_end'))
                 sub.save()
                 
-                # Make sure premium is active
-                profile.is_premium = True
-                profile.subscription_active = True
-                profile.subscription_plan = sub.plan_name
-                profile.save(update_fields=['is_premium', 'subscription_active', 'subscription_plan'])
+                # Sync profile with local active subscriptions
+                sync_profile_from_local_subscriptions(user)
                 
                 # Record charge log
                 payment_payload = payload.get('payment', {}).get('entity', {})
@@ -245,14 +258,19 @@ class RazorpayWebhookView(APIView):
                     
             elif event_name == 'subscription.cancelled':
                 sub.status = 'cancelled'
-                sub.is_active = False
+                
+                # If cancellation is cycle_end, keep active locally until current_end
+                current_end_ts = subscription_payload.get('current_end')
+                current_end_dt = timestamp_to_datetime(current_end_ts) if current_end_ts else sub.current_end
+                
+                is_valid_period = current_end_dt and timezone.now() < current_end_dt
+                sub.is_active = is_valid_period
+                if current_end_dt:
+                    sub.current_end = current_end_dt
                 sub.save()
                 
-                # Deactivate premium in profile
-                profile.is_premium = False
-                profile.subscription_active = False
-                profile.subscription_plan = 'free'
-                profile.save(update_fields=['is_premium', 'subscription_active', 'subscription_plan'])
+                # Sync profile with local active subscriptions
+                sync_profile_from_local_subscriptions(user)
                 
             elif event_name == 'payment.failed':
                 # Log charge failure in billing history if payment payload is present
