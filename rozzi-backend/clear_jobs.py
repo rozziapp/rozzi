@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script to clear all job posts from the database
-Run this from the setuna-backend directory with: python clear_jobs.py
+Run this from the rozzi-backend directory with: python clear_jobs.py
 """
 
 import os

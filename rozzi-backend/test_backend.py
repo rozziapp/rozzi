@@ -67,7 +67,7 @@ if __name__ == '__main__':
         test_jobs_endpoint()
     else:
         print("\n💡 To start the backend:")
-        print("1. Navigate to setuna-backend directory")
+        print("1. Navigate to rozzi-backend directory")
         print("2. Run: python manage.py runserver 0.0.0.0:8000")
         print("3. Keep the server running in the background")
     

@@ -21,7 +21,7 @@
 ## ✅ **Emergency Fixes Applied**
 
 ### 1. **Completely Removed Real-time System**
-- **Deleted**: `setuna-app/utils/realtimeChat.ts`
+- **Deleted**: `rozzi-app/utils/realtimeChat.ts`
 - **Removed**: All polling mechanisms from ChatContext
 - **Eliminated**: Recursive setTimeout calls
 
@@ -112,9 +112,9 @@
 ## 🚨 **If Issues Persist**
 
 ### **Check these files**:
-1. `setuna-app/contexts/ChatContext.tsx` - Should have no polling
-2. `setuna-app/app/(tabs)/index.tsx` - Intervals should be 30min and 5min
-3. `setuna-app/app/conversations.tsx` - Should only call API on refresh
+1. `rozzi-app/contexts/ChatContext.tsx` - Should have no polling
+2. `rozzi-app/app/(tabs)/index.tsx` - Intervals should be 30min and 5min
+3. `rozzi-app/app/conversations.tsx` - Should only call API on refresh
 
 ### **Console logs to expect**:
 ```

@@ -11,6 +11,7 @@ import {
 
 export function useCustomFonts() {
   return useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     IrishGrover: IrishGrover_400Regular,
     Outfit: Outfit_400Regular,
     'Outfit-Medium': Outfit_500Medium,

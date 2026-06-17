@@ -330,7 +330,7 @@ API.interceptors.response.use(
 
 ### Run the Test Script
 ```bash
-cd setuna-backend
+cd rozzi-backend
 python test_jwt_auth.py
 ```
 

@@ -27,7 +27,7 @@ try {
     } else {
       console.log('❌ Backend is not accessible\n');
       console.log('📝 Please ensure your Django backend is running:');
-      console.log('   cd setuna-backend');
+      console.log('   cd rozzi-backend');
       console.log('   python manage.py runserver 0.0.0.0:8000\n');
     }
   });
@@ -43,7 +43,7 @@ console.log('   ✓ Improved error handling in the app\n');
 
 console.log('🚀 Next steps:');
 console.log('1. Make sure Django backend is running:');
-console.log('   cd setuna-backend');
+console.log('   cd rozzi-backend');
 console.log('   python manage.py runserver 0.0.0.0:8000');
 console.log('');
 console.log('2. Restart your React Native app');

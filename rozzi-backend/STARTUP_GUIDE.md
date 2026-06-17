@@ -50,7 +50,7 @@ Your app will now:
 
 ## 🔄 **After System Restart**
 
-1. **Navigate to** `setuna-backend` folder
+1. **Navigate to** `rozzi-backend` folder
 2. **Double-click** `start-backend.bat` (or run any startup script)
 3. **Wait for** automatic IP detection and configuration
 4. **Start your React Native app** - it will connect automatically!
@@ -74,7 +74,7 @@ Your app will now:
 - Make sure Python is in your system PATH
 
 ### **Issue: "Not in correct directory"**
-- Navigate to the `setuna-backend` folder
+- Navigate to the `rozzi-backend` folder
 - Run the startup script from there
 
 ### **Issue: App still can't connect**
@@ -93,7 +93,7 @@ Your app will now:
 
 ```bash
 # Navigate to backend folder
-cd setuna-backend
+cd rozzi-backend
 
 # Start backend (choose one):
 start-backend.bat          # Windows batch file

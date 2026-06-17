@@ -43,7 +43,7 @@ export default function ContactSupportScreen() {
     const emailSubject = subject.trim() || 'Support Request';
     const emailBody = message.trim() || 'I need help with the Rozzi app.';
     
-    const mailtoUrl = `mailto:setunajobs@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    const mailtoUrl = `mailto:rozzijobs@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
     
     Linking.canOpenURL(mailtoUrl).then(supported => {
       if (supported) {
@@ -52,11 +52,11 @@ export default function ContactSupportScreen() {
         // Fallback: copy email to clipboard
         Alert.alert(
           'Email App Not Found',
-          'Please copy our email address and send us a message:\n\nsetunajobs@gmail.com',
+          'Please copy our email address and send us a message:\n\nrozzijobs@gmail.com',
           [
             { text: 'Copy Email', onPress: () => {
               // You can implement clipboard functionality here
-              Alert.alert('Email Copied', 'setunajobs@gmail.com has been copied to your clipboard.');
+              Alert.alert('Email Copied', 'rozzijobs@gmail.com has been copied to your clipboard.');
             }},
             { text: 'Cancel', style: 'cancel' }
           ]

@@ -38,7 +38,7 @@ The app now automatically detects the correct backend URL and provides fallback 
 
 1. **Check if your backend is running**:
    ```bash
-   cd setuna-backend
+   cd rozzi-backend
    py manage.py runserver 0.0.0.0:8000
    ```
 
@@ -49,7 +49,7 @@ The app now automatically detects the correct backend URL and provides fallback 
 
 3. **Find your local IP address**:
    ```bash
-   cd setuna-app
+   cd rozzi-app
    node scripts/find-local-ip.js
    ```
 
@@ -65,7 +65,7 @@ The app now automatically detects the correct backend URL and provides fallback 
 
 If you need to manually override the IP detection:
 
-1. Edit `setuna-app/utils/env.ts`
+1. Edit `rozzi-app/utils/env.ts`
 2. Modify the `getLocalIPAddress()` function
 3. Return your specific IP address
 

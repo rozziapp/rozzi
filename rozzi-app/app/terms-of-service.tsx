@@ -52,7 +52,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
           <Text style={styles.sectionText}>
-            By accessing and using the Setuna mobile application ("App"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+            By accessing and using the Rozzi mobile application ("App"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
           </Text>
         </View>
 
@@ -60,7 +60,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>2. Service Description</Text>
           <Text style={styles.sectionText}>
-            Setuna is a job marketplace platform that connects job seekers with employers. The App allows users to post job opportunities, search for jobs, apply for positions, and communicate with other users.
+            Rozzi is a job marketplace platform that connects job seekers with employers. The App allows users to post job opportunities, search for jobs, apply for positions, and communicate with other users.
           </Text>
         </View>
 
@@ -91,7 +91,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>5. Job Postings</Text>
           <Text style={styles.sectionText}>
-            Employers are responsible for the accuracy and legality of job postings. Job postings must comply with all applicable employment laws and regulations. Setuna reserves the right to remove any job posting that violates these terms.
+            Employers are responsible for the accuracy and legality of job postings. Job postings must comply with all applicable employment laws and regulations. Rozzi reserves the right to remove any job posting that violates these terms.
           </Text>
         </View>
 
@@ -115,7 +115,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>8. Intellectual Property</Text>
           <Text style={styles.sectionText}>
-            The App and its original content, features, and functionality are owned by Setuna and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
+            The App and its original content, features, and functionality are owned by Rozzi and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
           </Text>
         </View>
 
@@ -123,7 +123,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>9. Disclaimers</Text>
           <Text style={styles.sectionText}>
-            The App is provided "as is" without warranties of any kind. Setuna does not guarantee job placement or employment opportunities. Users are responsible for verifying the accuracy of job listings and employer information.
+            The App is provided "as is" without warranties of any kind. Rozzi does not guarantee job placement or employment opportunities. Users are responsible for verifying the accuracy of job listings and employer information.
           </Text>
         </View>
 
@@ -131,7 +131,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>10. Limitation of Liability</Text>
           <Text style={styles.sectionText}>
-            Setuna shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the App or any job-related activities.
+            Rozzi shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the App or any job-related activities.
           </Text>
         </View>
 
@@ -157,7 +157,7 @@ export default function TermsOfServiceScreen() {
           <Text style={styles.sectionText}>
             If you have any questions about these Terms of Service, please contact us at:
           </Text>
-          <Text style={styles.contactInfo}>Email: setunajobs@gmail.com</Text>
+          <Text style={styles.contactInfo}>Email: rozzijobs@gmail.com</Text>
         </View>
 
         {/* Governing Law */}
@@ -171,7 +171,7 @@ export default function TermsOfServiceScreen() {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            By using the Setuna app, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+            By using the Rozzi app, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
           </Text>
         </View>
       </ScrollView>

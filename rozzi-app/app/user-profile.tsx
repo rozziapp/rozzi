@@ -19,6 +19,7 @@ import API from '@/utils/api';
 import { useBlockUser } from '@/hooks/useBlockUser';
 import { useChat } from '@/contexts/ChatContext';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ShareBottomSheet from '@/components/ShareBottomSheet';
 
@@ -38,6 +39,7 @@ interface UserProfile {
 
 export default function UserProfileScreen() {
   const { colors, colorScheme } = useAppTheme();
+  const { user } = useAuth();
   const styles = React.useMemo(() => getStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [fontsLoaded] = useCustomFonts();
@@ -488,7 +490,30 @@ export default function UserProfileScreen() {
               <TouchableOpacity
                 key={post.id}
                 style={styles.postCard}
-                onPress={() => router.push(`/job-application?jobId=${post.id}&jobTitle=${post.title}&isLookingPost=${post.post_type === 'looking'}&posterName=${userProfile.full_name}`)}
+                onPress={() => {
+                  const isLookingPost = post.post_type === 'looking';
+                  if (!isLookingPost) {
+                    const remaining = user?.profile?.remaining_applications ?? 3;
+                    if (user?.profile?.subscription_plan === 'free' && remaining <= 0) {
+                      Alert.alert(
+                        'Daily Limit Reached',
+                        'You have used your 3 daily job applications on the Free plan. Upgrade to Seeker 29 or Recruiter 99 to unlock unlimited applications!',
+                        [
+                          {
+                            text: 'Upgrade Now',
+                            onPress: () => router.push('/subscription'),
+                          },
+                          {
+                            text: 'Maybe Later',
+                            style: 'cancel',
+                          },
+                        ]
+                      );
+                      return;
+                    }
+                  }
+                  router.push(`/job-application?jobId=${post.id}&jobTitle=${post.title}&isLookingPost=${isLookingPost}&posterName=${userProfile.full_name}`);
+                }}
               >
                 <View style={styles.postHeader}>
                   <View style={styles.postTypeBadge}>

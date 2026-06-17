@@ -1055,6 +1055,26 @@ export default function HomeScreen() {
   };
 
   const handleApply = (post: JobPost) => {
+    // Check if free user reached the application limit
+    const remaining = user?.profile?.remaining_applications ?? 3;
+    if (user?.profile?.subscription_plan === 'free' && remaining <= 0) {
+      Alert.alert(
+        'Daily Limit Reached',
+        'You have used your 3 daily job applications on the Free plan. Upgrade to Seeker 29 or Recruiter 99 to unlock unlimited applications!',
+        [
+          {
+            text: 'Upgrade Now',
+            onPress: () => router.push('/subscription'),
+          },
+          {
+            text: 'Maybe Later',
+            style: 'cancel',
+          },
+        ]
+      );
+      return;
+    }
+
     // Navigate to job application screen
     router.push({
       pathname: '/job-application',
@@ -1366,15 +1386,56 @@ export default function HomeScreen() {
   }
 
   if (error) {
+    const isNetworkErr = error.toLowerCase().includes('network') || error.toLowerCase().includes('django');
+    const iconName = isNetworkErr ? 'wifi-outline' : 'alert-circle-outline';
+    const errorTitle = isNetworkErr ? 'Connection Error' : 'System Error';
+    const errorSubtitle = isNetworkErr 
+      ? 'We are unable to connect to the server. Please check your internet connection or try again later.'
+      : 'Something went wrong while fetching the latest jobs. If the problem persists, please contact support.';
+
     return (
-      <View style={[styles.container, { backgroundColor: colors.error, justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: '#fff', marginBottom: 16 }}>Error: {error}</Text>
-        <TouchableOpacity
-          style={{ backgroundColor: colors.card, padding: 12, borderRadius: 8 }}
-          onPress={() => window.location.reload()}
-        >
-          <Text style={{ color: 'rgb(167, 139, 250)' }}>Retry</Text>
-        </TouchableOpacity>
+      <View style={[styles.errorContainer, { backgroundColor: colors.brandBackground }]}>
+        <View style={[styles.errorCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[
+            styles.errorIconContainer, 
+            { backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.08)' }
+          ]}>
+            <Ionicons 
+              name={iconName} 
+              size={36} 
+              color={colors.error} 
+            />
+          </View>
+          
+          <Text style={[styles.errorTitle, { color: colors.text }]}>{errorTitle}</Text>
+          <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
+            {errorSubtitle}
+          </Text>
+          
+          <Text style={{ 
+            fontSize: 12, 
+            color: colors.error, 
+            fontFamily: 'Outfit-Medium', 
+            textAlign: 'center', 
+            marginBottom: 24,
+            backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
+            padding: 10,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)',
+            width: '100%',
+          }}>
+            {error}
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.errorButton, { backgroundColor: colors.primary }]}
+            onPress={onRefresh}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.errorButtonText}>Retry Connection</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -2043,6 +2104,63 @@ const getStyles = (colors: any, colorScheme: 'light' | 'dark') => StyleSheet.cre
   container: {
     flex: 1,
     minHeight: Dimensions.get('window').height,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  errorCard: {
+    width: '90%',
+    maxWidth: 360,
+    borderRadius: 24,
+    padding: 28,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+  },
+  errorIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontFamily: 'Outfit-Bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 14,
+    fontFamily: 'Outfit-Regular',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  errorButton: {
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    shadowColor: '#6b46c1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  errorButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
   },
   topBar: {
     flexDirection: 'row',

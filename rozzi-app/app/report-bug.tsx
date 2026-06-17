@@ -115,7 +115,7 @@ This bug report was submitted through the Rozzi app.
     `.trim();
 
     // Send email
-    const mailtoUrl = `mailto:setunajobs@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    const mailtoUrl = `mailto:rozzijobs@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
     
     Linking.canOpenURL(mailtoUrl).then(supported => {
       if (supported) {
@@ -130,10 +130,10 @@ This bug report was submitted through the Rozzi app.
       } else {
         Alert.alert(
           'Email App Not Found',
-          'Please copy our email address and send us the bug report:\n\nsetunajobs@gmail.com',
+          'Please copy our email address and send us the bug report:\n\nrozzijobs@gmail.com',
           [
             { text: 'Copy Email', onPress: () => {
-              Alert.alert('Email Copied', 'setunajobs@gmail.com has been copied to your clipboard.');
+              Alert.alert('Email Copied', 'rozzijobs@gmail.com has been copied to your clipboard.');
             }},
             { text: 'Cancel', style: 'cancel' }
           ]

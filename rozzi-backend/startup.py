@@ -95,7 +95,7 @@ def main():
     
     # Check if we're in the right directory
     if not Path('manage.py').exists():
-        print("❌ Please run this script from the setuna-backend directory")
+        print("❌ Please run this script from the rozzi-backend directory")
         return
     
     # Update Django settings

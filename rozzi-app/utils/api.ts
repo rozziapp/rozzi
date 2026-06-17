@@ -12,10 +12,14 @@ const createAPIInstance = (baseURL: string) => {
       'Content-Type': 'application/json',
       'Accept': 'application/json, text/plain, */*',
     },
-    validateStatus: (status) => {
-      return status >= 200 && status < 500; // Accept 2xx and 4xx responses
-    },
   });
+};
+
+// Global callback for unauthorized events (401 session expiration)
+let unauthorizedCallback: (() => void) | null = null;
+
+export const setUnauthorizedCallback = (callback: (() => void) | null) => {
+  unauthorizedCallback = callback;
 };
 
 // Global API instance that will be updated dynamically
@@ -70,38 +74,54 @@ const setupInterceptors = () => {
       const originalRequest = error.config;
 
       // If the error is 401 and we haven't tried to refresh the token yet
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
+      if (error.response?.status === 401) {
+        if (!originalRequest._retry) {
+          originalRequest._retry = true;
 
-        try {
-          // Get refresh token from AsyncStorage
-          const refreshToken = await AsyncStorage.getItem('refreshToken');
+          try {
+            // Get refresh token from AsyncStorage
+            const refreshToken = await AsyncStorage.getItem('refreshToken');
 
-          if (refreshToken) {
-            console.log('Attempting to refresh expired token...');
-            const workingURL = await getWorkingBackendURL();
-            const response = await axios.post(`${workingURL}/token/refresh/`, {
-              refresh: refreshToken
-            });
+            if (refreshToken) {
+              console.log('Attempting to refresh expired token...');
+              const workingURL = await getWorkingBackendURL();
+              const response = await axios.post(`${workingURL}/token/refresh/`, {
+                refresh: refreshToken
+              });
 
-            const { access } = response.data;
+              const { access } = response.data;
 
-            // Store the new access token
-            await AsyncStorage.setItem('authToken', access);
-            console.log('Token refreshed successfully');
+              // Store the new access token
+              await AsyncStorage.setItem('authToken', access);
+              console.log('Token refreshed successfully');
 
-            // Update the original request with the new token
-            originalRequest.headers.Authorization = `Bearer ${access}`;
+              // Update the original request with the new token
+              originalRequest.headers.Authorization = `Bearer ${access}`;
 
-            // Retry the original request
-            return API(originalRequest);
-          } else {
-            console.log('No refresh token available - cannot refresh expired token');
+              // Retry the original request
+              return API(originalRequest);
+            } else {
+              console.log('No refresh token available - cannot refresh expired token');
+              await AsyncStorage.multiRemove(['authToken', 'refreshToken', 'user']);
+              if (unauthorizedCallback) {
+                unauthorizedCallback();
+              }
+            }
+          } catch (refreshError) {
+            // If refresh fails, clear tokens 
+            await AsyncStorage.multiRemove(['authToken', 'refreshToken', 'user']);
+            console.log('Token refresh failed - tokens cleared');
+            if (unauthorizedCallback) {
+              unauthorizedCallback();
+            }
           }
-        } catch (refreshError) {
-          // If refresh fails, clear tokens 
+        } else {
+          // If the request fails with 401 even after retry, log out
+          console.log('401 error persists after token refresh retry - logging out');
           await AsyncStorage.multiRemove(['authToken', 'refreshToken', 'user']);
-          console.log('Token refresh failed - tokens cleared');
+          if (unauthorizedCallback) {
+            unauthorizedCallback();
+          }
         }
       }
 
@@ -293,18 +313,16 @@ export const resumeAPI = {
 
     try {
       const response = await API.post('/resume-files/', resumeData);
-      // Check for error status (validateStatus allows 4xx through without throwing)
-      if (response.status >= 400) {
-        console.error('❌ Resume file API returned error status:', response.status, response.data);
-        const errorMsg = response.data?.file_url?.[0] || response.data?.error || response.data?.detail || 'Failed to save resume';
-        throw new Error(errorMsg);
-      }
       console.log('✅ Resume file API call successful:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Resume file API call failed:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        const errorMsg = error.response.data?.file_url?.[0] || error.response.data?.error || error.response.data?.detail || 'Failed to save resume';
+        throw new Error(errorMsg);
+      }
       throw error;
     }
   },
@@ -316,14 +334,19 @@ export const resumeAPI = {
     file_size?: number;
     is_default?: boolean;
   }) => {
-    const response = await API.put(`/resume-files/${id}/`, resumeData);
-    // Check for error status (validateStatus allows 4xx through without throwing)
-    if (response.status >= 400) {
-      console.error('❌ Resume file update returned error status:', response.status, response.data);
-      const errorMsg = response.data?.file_url?.[0] || response.data?.error || response.data?.detail || 'Failed to update resume';
-      throw new Error(errorMsg);
+    try {
+      const response = await API.put(`/resume-files/${id}/`, resumeData);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Resume file update failed:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        const errorMsg = error.response.data?.file_url?.[0] || error.response.data?.error || error.response.data?.detail || 'Failed to update resume';
+        throw new Error(errorMsg);
+      }
+      throw error;
     }
-    return response.data;
   },
 
   // Delete a resume file

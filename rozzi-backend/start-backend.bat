@@ -13,7 +13,7 @@ if errorlevel 1 (
 
 REM Check if we're in the right directory
 if not exist "manage.py" (
-    echo ❌ Please run this script from the setuna-backend directory
+    echo ❌ Please run this script from the rozzi-backend directory
     pause
     exit /b 1
 )

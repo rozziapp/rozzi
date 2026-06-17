@@ -15,7 +15,7 @@ This is the Django backend for the Rozzi job platform mobile app.
 
 1. **Clone the repository and navigate to backend**
    ```bash
-   cd setuna-backend
+   cd rozzi-backend
    ```
 
 2. **Install dependencies**

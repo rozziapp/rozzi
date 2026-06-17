@@ -56,7 +56,7 @@ export const initializeAppConnectivity = async (): Promise<ConnectivityResult> =
   
   // Generate helpful suggestions
   suggestions.push('Make sure your Django backend is running:');
-  suggestions.push('  cd setuna-backend');
+  suggestions.push('  cd rozzi-backend');
   suggestions.push('  python manage.py runserver 0.0.0.0:8000');
   suggestions.push('');
   suggestions.push('If the backend is running but still not accessible:');

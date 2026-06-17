@@ -1,9 +1,9 @@
 const fs = require('fs');
 
 const filesToRefactor = [
-  'q:/Niratma/Setuna/setuna-app/app/(tabs)/inbox.tsx',
-  'q:/Niratma/Setuna/setuna-app/app/(tabs)/index.tsx',
-  'q:/Niratma/Setuna/setuna-app/app/chat.tsx'
+  'q:/Niratma/Rozzi/rozzi-app/app/(tabs)/inbox.tsx',
+  'q:/Niratma/Rozzi/rozzi-app/app/(tabs)/index.tsx',
+  'q:/Niratma/Rozzi/rozzi-app/app/chat.tsx'
 ];
 
 function refactorFile(file) {

@@ -17,7 +17,7 @@ try {
 
 # Check if we're in the right directory
 if (-not (Test-Path "manage.py")) {
-    Write-Host "❌ Please run this script from the setuna-backend directory" -ForegroundColor Red
+    Write-Host "❌ Please run this script from the rozzi-backend directory" -ForegroundColor Red
     Read-Host "Press Enter to exit"
     exit 1
 }

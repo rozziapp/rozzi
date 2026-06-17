@@ -52,7 +52,7 @@ export default function PrivacyPolicyScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Introduction</Text>
           <Text style={styles.sectionText}>
-            At Setuna, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our job marketplace mobile application.
+            At Rozzi, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our job marketplace mobile application.
           </Text>
         </View>
 
@@ -178,14 +178,14 @@ export default function PrivacyPolicyScreen() {
           <Text style={styles.sectionText}>
             If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
           </Text>
-          <Text style={styles.contactInfo}>Email: setunajobs@gmail.com</Text>
+          <Text style={styles.contactInfo}>Email: rozzijobs@gmail.com</Text>
           <Text style={styles.contactInfo}>Support Hours: Monday - Friday, 9:00 AM - 6:00 PM IST</Text>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            By using the Setuna app, you acknowledge that you have read and understood this Privacy Policy and consent to the collection, use, and disclosure of your information as described herein.
+            By using the Rozzi app, you acknowledge that you have read and understood this Privacy Policy and consent to the collection, use, and disclosure of your information as described herein.
           </Text>
         </View>
       </ScrollView>

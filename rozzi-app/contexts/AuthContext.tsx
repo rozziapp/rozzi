@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useRouter } from 'expo-router';
-import API from '@/utils/api';
+import API, { setUnauthorizedCallback } from '@/utils/api';
 import { clearAllTokens, checkStoredTokens } from '@/utils/clearTokens';
 
 interface UserProfileData {
@@ -74,11 +74,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     mountedRef.current = true;
     checkAuthStatus();
 
+    // Register callback for unauthorized events (401 session expiration)
+    setUnauthorizedCallback(() => {
+      console.log('Session expired - performing automatic logout');
+      logout();
+    });
+
     // Cleanup function to track when component unmounts
     return () => {
       mountedRef.current = false;
       // Ensure we clean up any pending operations
       setIsLoggingOut(false);
+      setUnauthorizedCallback(null);
     };
   }, []);
 
@@ -91,67 +98,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedUser = await AsyncStorage.getItem('user');
 
       if (storedToken && storedUser) {
-        // Test if the token is still valid by making a request with a SHORT timeout
-        // We don't want to hang for 30s on startup — fail fast and go to login
+        // Optimistically restore cached session immediately so UI renders instantly
+        console.log('⚡ Optimistically restoring cached session...');
+        setToken(storedToken);
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout for startup check
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          setUser(null);
+        }
+        setIsLoading(false); // UI goes to home screen immediately!
 
+        // Now verify the session in the background
+        try {
+          console.log('📡 Running background session verification...');
           const response = await API.get('/me/', {
-            signal: controller.signal,
             timeout: 5000,
           });
-          clearTimeout(timeoutId);
 
           if (response.status === 200) {
-            setToken(storedToken);
             const freshUser = response.data;
             setUser(freshUser);
             await AsyncStorage.setItem('user', JSON.stringify(freshUser));
-            console.log('✅ Token is valid, user authenticated with fresh profile');
+            console.log('✅ Background token verification succeeded, profile updated');
           } else {
-            // Token is invalid, clear storage and redirect to login
-            console.log('Token validation failed, clearing tokens');
-            await clearAllTokens();
-            setToken(null);
-            setUser(null);
+            console.log('❌ Background token check failed with status:', response.status);
+            // This is an error status, clear tokens and logout
+            await logout();
           }
         } catch (tokenError: any) {
-          // If the error is an explicit 401 or 403, the session is definitely invalid, so clear it.
           const isAuthError = tokenError.response && (tokenError.response.status === 401 || tokenError.response.status === 403);
           
           if (isAuthError) {
-            if (tokenError.response?.status === 401 &&
-              tokenError.response?.data?.detail?.includes('Token is expired')) {
-              console.log('Token expired during startup - clearing expired tokens');
-            } else {
-              console.log('Token validation failed with authentication error. Clearing tokens.');
-            }
-            await clearAllTokens();
-            setToken(null);
-            setUser(null);
+            console.log('❌ Background token check failed with auth error. Logging out.');
+            await logout();
           } else {
-            // It's a network timeout, abort error, or server error. Do NOT log the user out!
-            // Restoring cached session so the app remains usable.
-            console.log('⚠️ Backend unreachable or request timed out. Restoring cached session.');
-            setToken(storedToken);
-            try {
-              setUser(JSON.parse(storedUser));
-            } catch (e) {
-              setUser(null);
-            }
+            console.log('⚠️ Background token check failed due to network/server issue. Keeping cached session.');
           }
         }
       } else {
         console.log('No stored tokens found');
-        // No redirect here — _layout.tsx handles navigation via auth gate
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
       await clearAllTokens();
       setToken(null);
       setUser(null);
-    } finally {
       setIsLoading(false);
     }
   };

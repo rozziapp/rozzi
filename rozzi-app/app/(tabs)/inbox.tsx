@@ -617,29 +617,16 @@ export default function InboxScreen() {
 
       {/* Search Bar for Messages */}
       {activeTab === 'messages' && (
-        <>
-          {/* New Message Button */}
-          <View style={styles.newMessageContainer}>
-            <TouchableOpacity
-              style={styles.newMessageButton}
-              onPress={() => setShowNewMessageModal(true)}
-            >
-              <Ionicons name="add-circle" size={20} color="#fff" />
-              <Text style={styles.newMessageButtonText}>New Message</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-            <Ionicons name="search" size={16} color={colors.textSecondary} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Search contacts..."
-              placeholderTextColor={colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        </>
+        <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+          <Ionicons name="search" size={18} color={colors.textSecondary} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder="Search contacts..."
+            placeholderTextColor={colors.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       )}
 
       <ScrollView
@@ -739,50 +726,34 @@ export default function InboxScreen() {
                 return (
                   <TouchableOpacity
                     key={conversation.id}
-                    style={[styles.messageCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}
+                    style={[styles.messageCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                     onPress={() => {
                       markAsRead(conversation.id);
                       router.push(`/chat?conversationId=${conversation.id}&userId=${otherParticipant?.id}&userName=${otherParticipant?.full_name || otherParticipant?.username}`);
                     }}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.messageHeader}>
-                      <View style={styles.userImageContainer}>
-                        <TouchableOpacity
-                          style={styles.userImage}
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            router.push(`/user-profile?userId=${otherParticipant?.id}`);
-                          }}
-                        >
-                          <ProfilePicture
-                            size={48}
-                            showLongPress={false}
-                            userId={otherParticipant?.id}
-                            imageUrl={otherParticipant?.profile_picture}
-                            noBorder={true}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <View style={styles.messageContent}>
-                        <View style={styles.messageTop}>
-                          <TouchableOpacity
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              router.push(`/chat?conversationId=${conversation.id}&userId=${otherParticipant?.id}&userName=${otherParticipant?.full_name || otherParticipant?.username}`);
-                            }}
-                            style={{ flex: 1, marginRight: 8 }}
-                          >
-                            <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
-                              {otherParticipant?.full_name || otherParticipant?.username || 'Unknown User'}
-                            </Text>
-                          </TouchableOpacity>
-                          {lastMessage?.created_at && (
-                            <Text style={[styles.timeText, { color: colors.textSecondary }]}>
-                              {lastMessage.time_ago || ''}
-                            </Text>
-                          )}
-                        </View>
+                    <View style={styles.messageRow}>
+                      <TouchableOpacity
+                        style={styles.avatarContainer}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          router.push(`/user-profile?userId=${otherParticipant?.id}`);
+                        }}
+                      >
+                        <ProfilePicture
+                          size={54}
+                          showLongPress={false}
+                          userId={otherParticipant?.id}
+                          imageUrl={otherParticipant?.profile_picture}
+                          noBorder={true}
+                        />
+                      </TouchableOpacity>
+
+                      <View style={styles.middleContent}>
+                        <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
+                          {otherParticipant?.full_name || otherParticipant?.username || 'Unknown User'}
+                        </Text>
                         <Text
                           style={[
                             styles.lastMessage,
@@ -798,11 +769,24 @@ export default function InboxScreen() {
                             : 'No messages yet'}
                         </Text>
                       </View>
-                      {conversation.unread_count > 0 && (
-                        <View style={styles.unreadBadge}>
-                          <Text style={styles.unreadCount}>{conversation.unread_count}</Text>
-                        </View>
-                      )}
+
+                      <View style={styles.rightContent}>
+                        {lastMessage?.created_at && (
+                          <Text style={[
+                            styles.timeText,
+                            { color: conversation.unread_count > 0 ? colors.primary : colors.textSecondary }
+                          ]}>
+                            {lastMessage.time_ago || ''}
+                          </Text>
+                        )}
+                        {conversation.unread_count > 0 ? (
+                          <View style={[styles.unreadBadge, { backgroundColor: colors.primary }]}>
+                            <Text style={styles.unreadCount}>{conversation.unread_count}</Text>
+                          </View>
+                        ) : (
+                          <View style={{ height: 20 }} />
+                        )}
+                      </View>
                     </View>
                   </TouchableOpacity>
                 );
@@ -987,6 +971,17 @@ export default function InboxScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Floating Action Button for New Message */}
+      {activeTab === 'messages' && (
+        <TouchableOpacity
+          style={[styles.fabButton, { backgroundColor: colors.primary }]}
+          onPress={() => setShowNewMessageModal(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -994,6 +989,7 @@ export default function InboxScreen() {
 const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.brandBackground,
   },
   topBar: {
     flexDirection: 'row',
@@ -1015,10 +1011,10 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
   appName: {
     fontSize: 26,
-    fontWeight: 'bold',
+    fontFamily: 'Outfit-Bold',
   },
   iconButton: {
-    padding: 4,
+    padding: 6,
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -1027,24 +1023,32 @@ const getStyles = (colors: any) => StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 16,
     padding: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   toggleButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 21,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   activeToggleButton: {
     backgroundColor: colors.card,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   toggleText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    fontFamily: 'Outfit-SemiBold',
+    color: colors.textSecondary,
   },
   activeToggleText: {
-    color: '#8b5cf6',
+    color: colors.primary,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -1052,37 +1056,48 @@ const getStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.card,
     marginHorizontal: 16,
     marginBottom: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+    elevation: 1,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: 10,
+    fontSize: 15,
+    fontFamily: 'Outfit-Medium',
     color: colors.text,
+    padding: 0,
   },
   scrollView: {
     flex: 1,
   },
   notificationsContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 80,
   },
   messagesContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 80,
   },
   notificationCard: {
     backgroundColor: colors.card,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   unreadNotification: {
     borderLeftWidth: 4,
@@ -1105,19 +1120,20 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
   userName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Outfit-Bold',
     color: colors.text,
   },
   timeText: {
     fontSize: 12,
+    fontFamily: 'Outfit-Medium',
     color: colors.textSecondary,
   },
   notificationMessage: {
     fontSize: 14,
+    fontFamily: 'Outfit-Medium',
     color: colors.text,
     lineHeight: 20,
   },
-
   unreadDot: {
     position: 'absolute',
     top: 16,
@@ -1125,54 +1141,51 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3b7280',
+    backgroundColor: colors.primary,
   },
   messageCard: {
     backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  messageHeader: {
+  messageRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  userImageContainer: {
+  avatarContainer: {
     position: 'relative',
-    marginRight: 12,
   },
-  onlineIndicator: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#10b981',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  messageContent: {
+  middleContent: {
     flex: 1,
+    paddingLeft: 12,
+    paddingRight: 8,
+    justifyContent: 'center',
   },
-  messageTop: {
-    flexDirection: 'row',
+  rightContent: {
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+    height: 44,
+    paddingVertical: 2,
   },
   lastMessage: {
     fontSize: 14,
+    fontFamily: 'Outfit-Medium',
     color: colors.textSecondary,
+    lineHeight: 18,
+    marginTop: 2,
   },
   lastMessageUnread: {
     color: colors.text,
-    fontWeight: '600',
+    fontFamily: 'Outfit-Bold',
   },
   unreadBadge: {
     backgroundColor: colors.primary,
@@ -1181,13 +1194,28 @@ const getStyles = (colors: any) => StyleSheet.create({
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
     paddingHorizontal: 6,
   },
   unreadCount: {
     color: '#fff',
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Outfit-Bold',
+  },
+  fabButton: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+    zIndex: 99,
   },
   emptyState: {
     alignItems: 'center',
@@ -1252,7 +1280,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   modalStats: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.cardAlt,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },

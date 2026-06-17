@@ -60,8 +60,8 @@ if (currentIP) {
   updateEnvFile(currentIP);
   
   console.log('\n📱 Now you can:');
-  console.log('1. Start your Django backend: cd setuna-backend && py manage.py runserver 0.0.0.0:8000');
-  console.log('2. Start your React Native app: cd setuna-app && npm start');
+  console.log('1. Start your Django backend: cd rozzi-backend && py manage.py runserver 0.0.0.0:8000');
+  console.log('2. Start your React Native app: cd rozzi-app && npm start');
   console.log(`3. Your app will connect to: http://${currentIP}:8000/api`);
   
 } else {

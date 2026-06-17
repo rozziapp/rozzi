@@ -90,7 +90,7 @@ export default function JobApplicationScreen() {
   const { colors } = useAppTheme();
   const styles = React.useMemo(() => getStyles(colors), [colors]);
   const [fontsLoaded] = useCustomFonts();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, reloadUserProfile } = useAuth();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
 
@@ -124,6 +124,34 @@ export default function JobApplicationScreen() {
       router.replace('/login');
     }
   }, [isAuthenticated]);
+
+  // Check daily application limit for Free plan
+  useEffect(() => {
+    if (user && !isLookingPost) {
+      const remaining = user?.profile?.remaining_applications ?? 3;
+      if (user?.profile?.subscription_plan === 'free' && remaining <= 0) {
+        Alert.alert(
+          'Daily Limit Reached',
+          'You have used your 3 daily job applications on the Free plan. Upgrade to Seeker 29 or Recruiter 99 to unlock unlimited applications!',
+          [
+            {
+              text: 'Upgrade Now',
+              onPress: () => {
+                router.replace('/subscription');
+              }
+            },
+            {
+              text: 'Maybe Later',
+              style: 'cancel',
+              onPress: () => {
+                router.back();
+              }
+            }
+          ]
+        );
+      }
+    }
+  }, [user, isLookingPost]);
 
   // Fetch job details and user documents
   useEffect(() => {
@@ -277,6 +305,9 @@ export default function JobApplicationScreen() {
         console.log('Job application submitted successfully');
       }
 
+      // Reload user profile in AuthContext so we get updated remaining applications count
+      await reloadUserProfile();
+
       // Show success message
       const successMessage = isLookingPost
         ? `Your hire request has been sent to ${posterName}!`
@@ -295,7 +326,9 @@ export default function JobApplicationScreen() {
       let errorMessage = 'Failed to submit. Please try again.';
 
       if (error.response?.data) {
-        if (error.response.data.message) {
+        if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response.data.message) {
           errorMessage = error.response.data.message;
         } else if (error.response.data.detail) {
           errorMessage = error.response.data.detail;
@@ -304,7 +337,25 @@ export default function JobApplicationScreen() {
         }
       }
 
-      Alert.alert('Error', errorMessage);
+      if (errorMessage.toLowerCase().includes('limit') || errorMessage.toLowerCase().includes('free plan') || errorMessage.toLowerCase().includes('daily limit')) {
+        Alert.alert(
+          'Daily Limit Reached',
+          'You have reached your daily limit of 3 job applications on the Free plan. Upgrade to Seeker 29 or Recruiter 99 to apply to unlimited jobs!',
+          [
+            {
+              text: 'Upgrade Now',
+              onPress: () => router.replace('/subscription'),
+            },
+            {
+              text: 'Maybe Later',
+              style: 'cancel',
+              onPress: () => router.back(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Error', errorMessage);
+      }
     } finally {
       setSubmitting(false);
     }

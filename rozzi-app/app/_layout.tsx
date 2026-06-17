@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import { useCustomFonts } from '@/hooks/fonts';
 import { Stack, router, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { BackHandler, Platform, LogBox, View, ActivityIndicator, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
@@ -52,6 +52,7 @@ LogBox.ignoreLogs([
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const segments = useSegments();
+  const { colors, colorScheme } = useAppTheme();
 
   useEffect(() => {
     if (isLoading) return; // Still checking auth — do nothing yet
@@ -68,9 +69,44 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   // While auth is loading, show a branded splash screen
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#B0AAD9', justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#fff" />
-        <Text style={{ marginTop: 16, color: '#fff', fontSize: 16, fontWeight: '600' }}>Loading...</Text>
+      <View style={{ flex: 1, backgroundColor: colors.brandBackground, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{
+          width: 80,
+          height: 80,
+          borderRadius: 40,
+          backgroundColor: colorScheme === 'dark' ? 'rgba(167, 139, 250, 0.15)' : 'rgba(107, 70, 193, 0.08)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: 24,
+        }}>
+          <Ionicons 
+            name="briefcase-outline" 
+            size={38} 
+            color={colors.primary} 
+          />
+        </View>
+        
+        <Text style={{ 
+          color: colors.text, 
+          fontSize: 26, 
+          fontFamily: 'Outfit-Bold',
+          marginBottom: 8,
+          textAlign: 'center',
+        }}>
+          Rozzi
+        </Text>
+        
+        <Text style={{ 
+          color: colors.textSecondary, 
+          fontSize: 14, 
+          fontFamily: 'Outfit-Medium',
+          textAlign: 'center',
+          marginBottom: 24,
+        }}>
+          Getting things ready...
+        </Text>
+        
+        <ActivityIndicator size="small" color={colors.primary} />
       </View>
     );
   }
@@ -313,9 +349,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // ─── Root Layout ───────────────────────────────────────────────────────
 export default function RootLayout() {
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const [loaded] = useCustomFonts();
 
   // Initialize connectivity on app startup
   useEffect(() => {

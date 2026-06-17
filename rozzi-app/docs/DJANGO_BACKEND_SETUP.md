@@ -15,8 +15,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install django djangorestframework django-cors-headers
 
 # Create Django project
-django-admin startproject setuna_backend
-cd setuna_backend
+django-admin startproject rozzi_backend
+cd rozzi_backend
 
 # Create app
 python manage.py startapp authentication
@@ -24,7 +24,7 @@ python manage.py startapp authentication
 
 ### 2. Configure Settings
 
-Add to `setuna_backend/settings.py`:
+Add to `rozzi_backend/settings.py`:
 
 ```python
 INSTALLED_APPS = [
@@ -225,7 +225,7 @@ urlpatterns = [
 ]
 ```
 
-In `setuna_backend/urls.py`:
+In `rozzi_backend/urls.py`:
 
 ```python
 from django.contrib import admin

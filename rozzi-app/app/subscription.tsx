@@ -150,8 +150,8 @@ export default function SubscriptionScreen() {
   ) => {
     const description =
       planName === 'seeker_29'
-        ? 'Setuna Seeker 29 Subscription'
-        : 'Setuna Recruiter 99 Subscription';
+        ? 'Rozzi Seeker 29 Subscription'
+        : 'Rozzi Recruiter 99 Subscription';
         
     return `
       <!DOCTYPE html>
@@ -206,7 +206,7 @@ export default function SubscriptionScreen() {
           var options = {
             "key": "${keyId}",
             "subscription_id": "${subId}",
-            "name": "Setuna App",
+            "name": "Rozzi App",
             "description": "${description}",
             "theme": {
               "color": "#6b46c1"
@@ -424,13 +424,18 @@ export default function SubscriptionScreen() {
 
   const renderPlanCard = (plan: PricingPlan) => {
     const isSelected = selectedPlan === plan.id;
+    const isPendingCancel = plan.isCurrent && plan.id !== 'free' && !user?.profile?.subscription_active;
     
     return (
       <TouchableOpacity
         key={plan.id}
         style={[
           styles.planCard,
-          plan.isCurrent && styles.currentPlanCardStyle,
+          plan.isCurrent && (
+            isPendingCancel 
+              ? [styles.currentPlanCardStyle, { borderColor: '#f59e0b', backgroundColor: colorScheme === 'dark' ? 'rgba(245, 158, 11, 0.04)' : 'rgba(245, 158, 11, 0.03)' }]
+              : styles.currentPlanCardStyle
+          ),
           isSelected && styles.selectedPlanCard,
           plan.isPopular && styles.popularPlanCard
         ]}
@@ -439,23 +444,36 @@ export default function SubscriptionScreen() {
       >
         {/* Popular Badge */}
         {plan.isPopular && (
-          <View style={styles.popularBadge}>
+          <View style={[
+            styles.popularBadge,
+            plan.isCurrent && { right: 120 }
+          ]}>
             <Text style={styles.popularBadgeText}>Most Popular</Text>
           </View>
         )}
 
         {/* Current Plan Badge */}
         {plan.isCurrent && (
-          <View style={styles.currentBadge}>
-            <Text style={styles.currentBadgeText}>Active Plan</Text>
-          </View>
+          isPendingCancel ? (
+            <View style={[styles.currentBadge, { backgroundColor: '#f59e0b' }]}>
+              <Text style={styles.currentBadgeText}>Ends Soon</Text>
+            </View>
+          ) : (
+            <View style={styles.currentBadge}>
+              <Text style={styles.currentBadgeText}>Active Plan</Text>
+            </View>
+          )
         )}
 
         {/* Plan Header */}
         <View style={styles.planHeader}>
           <Text style={[
             styles.planName,
-            plan.isCurrent && styles.currentPlanName
+            plan.isCurrent && (
+              isPendingCancel
+                ? [styles.currentPlanName, { color: '#f59e0b' }]
+                : styles.currentPlanName
+            )
           ]}>
             {plan.name}
           </Text>

@@ -28,7 +28,7 @@ The system is already integrated into your app and will work automatically. When
 If you want to manually update your IP address, run:
 
 ```bash
-cd setuna-app
+cd rozzi-app
 node scripts/update-local-ip.js
 ```
 
