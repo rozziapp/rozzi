@@ -177,6 +177,12 @@ export default function HomeScreen() {
       setLocationFilter('all');
       setExpandedPost(null);
       setShowOptionsMenu(null);
+      // Reset animated search bar values to fix position after error->content transition
+      searchWidthAnim.setValue(120);
+      searchHeightAnim.setValue(40);
+      searchPaddingAnim.setValue(25);
+      searchBorderRadiusAnim.setValue(100);
+      setIsSearchFocused(false);
       // Scroll to top after refresh
       setTimeout(() => scrollToTop(), 100);
     } catch (error) {
@@ -479,18 +485,19 @@ export default function HomeScreen() {
 
 
 
-  const fetchJobs = async (isRefreshing = false) => {
+  const fetchJobs = async (isRefreshing = false, retryCount = 0) => {
     if (!isAuthenticated) {
       console.log('Not authenticated, skipping job fetch');
       return;
     }
 
     if (!isRefreshing) setLoading(true); // Only show skeleton on initial load, not on refresh
-    console.log('🚀 fetchJobs started, isAuthenticated:', isAuthenticated);
+    console.log('🚀 fetchJobs started, isAuthenticated:', isAuthenticated, 'retry:', retryCount);
 
-    // Safety timeout to prevent infinite loading
+    // Safety timeout — generous to survive Render free-tier cold starts (30-50s)
+    const timeoutMs = retryCount === 0 ? 50000 : 55000;
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Request timed out')), 15000)
+      setTimeout(() => reject(new Error('Request timed out')), timeoutMs)
     );
 
     try {
@@ -500,7 +507,6 @@ export default function HomeScreen() {
         timeoutPromise
       ]);
       console.log('✅ Jobs response received, status:', response.status);
-      // console.log('Jobs response data:', JSON.stringify(response.data).substring(0, 100) + '...');
 
       // Handle different response structures
       let jobsData: JobPost[] = [];
@@ -516,21 +522,10 @@ export default function HomeScreen() {
       // Filter out closed jobs
       const openJobs = (jobsData || []).filter(job => job.status !== 'Closed');
       console.log('📊 Total open jobs:', openJobs.length);
-      console.log('📊 Hire posts:', openJobs.filter(job => job.post_type === 'hire').length);
-      console.log('📊 Looking posts:', openJobs.filter(job => job.post_type === 'looking').length);
 
       setAllJobPosts(openJobs); // Store all posts for smart ranking
-
-      // Show posts immediately for better UX, then re-rank when user data is available
       setJobPosts(openJobs);
-
-      // Note: Posts will be re-ranked by rankAndDisplayPosts when user data loads
-
-      setAllJobPosts(openJobs); // Store all posts for smart ranking
-
-      // Show posts immediately for better UX
-      setJobPosts(openJobs);
-      setLoading(false); // Stop loading indicator immediately so user sees content
+      setLoading(false);
 
       // Recalculate user engagement
       setTimeout(() => calculateUserEngagement(), 100);
@@ -550,27 +545,30 @@ export default function HomeScreen() {
 
       setError(null);
     } catch (error: any) {
-      console.error('Error fetching jobs:', error);
+      console.error('Error fetching jobs (retry ' + retryCount + '):', error?.message);
 
-      // Check if it's a network error
+      // Auto-retry once on failure (handles Render cold start waking up)
+      if (retryCount < 1) {
+        console.log('🔄 Auto-retrying after cold start delay...');
+        // Wait 3s then retry — gives server time to fully wake up
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        return fetchJobs(isRefreshing, retryCount + 1);
+      }
+
+      // After retry exhausted, show error
       if (error.request) {
         console.log('Network error - backend might not be running');
-        setError('Network error: Backend server might not be running. Please check if the Django server is started on http://10.231.22.119:8000');
-
-        // Backend not available
-        console.log('Backend not available, showing empty state');
+        setError('Unable to reach server. The server may be starting up — please try again in a moment.');
         setJobPosts([]);
       } else if (error.response) {
-        // Server responded with error status
         setError(`Server error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
         setJobPosts([]);
       } else {
-        // Other error
         setError('An unexpected error occurred while fetching jobs.');
         setJobPosts([]);
       }
     } finally {
-      setLoading(false); // Stop loading indicator in finally block to ensure it's always called
+      setLoading(false);
     }
   };
 
@@ -1385,61 +1383,6 @@ export default function HomeScreen() {
     );
   }
 
-  if (error) {
-    const isNetworkErr = error.toLowerCase().includes('network') || error.toLowerCase().includes('django');
-    const iconName = isNetworkErr ? 'wifi-outline' : 'alert-circle-outline';
-    const errorTitle = isNetworkErr ? 'Connection Error' : 'System Error';
-    const errorSubtitle = isNetworkErr 
-      ? 'We are unable to connect to the server. Please check your internet connection or try again later.'
-      : 'Something went wrong while fetching the latest jobs. If the problem persists, please contact support.';
-
-    return (
-      <View style={[styles.errorContainer, { backgroundColor: colors.brandBackground }]}>
-        <View style={[styles.errorCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[
-            styles.errorIconContainer, 
-            { backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.08)' }
-          ]}>
-            <Ionicons 
-              name={iconName} 
-              size={36} 
-              color={colors.error} 
-            />
-          </View>
-          
-          <Text style={[styles.errorTitle, { color: colors.text }]}>{errorTitle}</Text>
-          <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
-            {errorSubtitle}
-          </Text>
-          
-          <Text style={{ 
-            fontSize: 12, 
-            color: colors.error, 
-            fontFamily: 'Outfit-Medium', 
-            textAlign: 'center', 
-            marginBottom: 24,
-            backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
-            padding: 10,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)',
-            width: '100%',
-          }}>
-            {error}
-          </Text>
-
-          <TouchableOpacity
-            style={[styles.errorButton, { backgroundColor: colors.primary }]}
-            onPress={onRefresh}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.errorButtonText}>Retry Connection</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
   return (
     <View style={[styles.container, { backgroundColor: colors.brandBackground }]}>
       {/* Top Bar - Same color as container */}
@@ -1545,8 +1488,41 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <ScrollView
-        ref={scrollViewRef}
+      {error ? (
+        <View style={styles.errorContainer}>
+          <View style={[styles.errorCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[
+              styles.errorIconContainer, 
+              { backgroundColor: colorScheme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.08)' }
+            ]}>
+              <Ionicons 
+                name={error.toLowerCase().includes('network') || error.toLowerCase().includes('unable') || error.toLowerCase().includes('timed out') ? 'wifi-outline' : 'alert-circle-outline'} 
+                size={36} 
+                color={colors.error} 
+              />
+            </View>
+            
+            <Text style={[styles.errorTitle, { color: colors.text }]}>
+              {error.toLowerCase().includes('network') || error.toLowerCase().includes('unable') || error.toLowerCase().includes('timed out') ? 'No Connection' : 'Something Went Wrong'}
+            </Text>
+            <Text style={[styles.errorMessage, { color: colors.textSecondary, marginBottom: 24 }]}>
+              {error.toLowerCase().includes('network') || error.toLowerCase().includes('unable') || error.toLowerCase().includes('timed out')
+                ? 'Please check your internet connection and try again.'
+                : "We're having trouble loading jobs right now. Please try again."}
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.errorButton, { backgroundColor: colors.primary }]}
+              onPress={onRefresh}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.errorButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <ScrollView
+          ref={scrollViewRef}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         onScroll={(event) => {
@@ -1932,6 +1908,7 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
+      )}
 
 
 

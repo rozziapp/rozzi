@@ -804,6 +804,34 @@ class JobListCreateView(generics.ListCreateAPIView):
                 
         serializer.save(user=user)
     
+    def list(self, request, *args, **kwargs):
+        from django.core.cache import cache
+        
+        job_type = self.request.query_params.get('job_type', 'All')
+        search = self.request.query_params.get('search', '')
+        page = self.request.query_params.get('page', '1')
+        user = self.request.user
+        is_authenticated = user.is_authenticated
+        
+        # Generational caching using cache versioning
+        cache_version = cache.get_or_set('jobs_cache_version', 1)
+        
+        if is_authenticated:
+            cache_key = f"jobs:auth:{cache_version}:{user.id}:{job_type}:{search.strip().lower()}:{page}"
+        else:
+            cache_key = f"jobs:anon:{cache_version}:{job_type}:{search.strip().lower()}:{page}"
+            
+        cached_response = cache.get(cache_key)
+        if cached_response is not None:
+            response = Response(cached_response)
+            response['X-Cache'] = 'HIT'
+            return response
+            
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, 300)  # Cache for 5 minutes
+        response['X-Cache'] = 'MISS'
+        return response
+        
     def get_queryset(self):
         queryset = Job.objects.filter(status='Open').select_related('user', 'user__profile').order_by('-created_at')
         
@@ -812,13 +840,31 @@ class JobListCreateView(generics.ListCreateAPIView):
         if job_type and job_type != 'All':
             queryset = queryset.filter(job_type=job_type)
         
-        # Filter by search query (Smart stem-based search in Python to prevent hiding partial matches)
+        # Filter by search query
         search = self.request.query_params.get('search', None)
         is_authenticated = self.request.user.is_authenticated
         
         # If no search and user not authenticated, return queryset directly for DB optimization
         if not search and not is_authenticated:
             return queryset
+            
+        # Optimize with Trigram Similarity if PostgreSQL
+        using_postgres_search = False
+        if search:
+            from django.db import connection
+            if connection.vendor == 'postgresql':
+                from django.contrib.postgres.search import TrigramSimilarity
+                queryset = queryset.annotate(
+                    similarity=(
+                        TrigramSimilarity('title', search) * 2.0 +
+                        TrigramSimilarity('location', search) * 1.5 +
+                        TrigramSimilarity('description', search) * 0.5
+                    )
+                ).filter(similarity__gt=0.08)
+                using_postgres_search = True
+                
+                if not is_authenticated:
+                    return queryset.order_by('-similarity', '-created_at')
             
         # Limit candidate pool to latest 1000 jobs to prevent memory overload & slow responses at scale
         queryset = queryset[:1000]
@@ -827,7 +873,7 @@ class JobListCreateView(generics.ListCreateAPIView):
         jobs = list(queryset)
         search_scores = {}
         
-        if search:
+        if search and not using_postgres_search:
             search_lower = search.lower().strip()
             search_words = [w for w in search_lower.split() if len(w) > 1]
             search_stems = get_text_stems(search_lower)
@@ -874,8 +920,7 @@ class JobListCreateView(generics.ListCreateAPIView):
             jobs = filtered_jobs
             
         if not is_authenticated:
-            # For unauthenticated users, sort by search relevancy if searching
-            if search:
+            if search and not using_postgres_search:
                 jobs.sort(key=lambda x: (search_scores.get(x.id, 0), x.created_at), reverse=True)
             return jobs
             

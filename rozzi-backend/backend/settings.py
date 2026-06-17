@@ -208,6 +208,11 @@ if use_sqlite_fallback or not dj_database_url:
     }
     print(f"[Settings] Database: SQLite (local development fallback)")
 
+# Conditionally enable django.contrib.postgres to avoid ModuleNotFoundError when psycopg2 is missing locally (SQLite dev)
+if 'postgresql' in DATABASES['default']['ENGINE']:
+    INSTALLED_APPS.append('django.contrib.postgres')
+    print("[Settings] Enabled django.contrib.postgres for PostgreSQL database")
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -447,3 +452,16 @@ else:
         }
     }
     print(f"[Settings] Cache: LocMemCache (local development)")
+
+
+# Celery Configuration Options
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+# Eager mode for development/free tier (runs tasks synchronously inline without worker process)
+CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=True, cast=bool)
+CELERY_TASK_EAGER_PROPAGATES = True

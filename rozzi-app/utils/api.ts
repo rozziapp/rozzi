@@ -7,7 +7,7 @@ import { getWorkingBackendURL, clearCachedURL } from './connectivity';
 const createAPIInstance = (baseURL: string) => {
   return axios.create({
     baseURL,
-    timeout: 15000, // 15s timeout — fail fast instead of hanging
+    timeout: 45000, // 45s timeout — accommodate Render free-tier cold starts (30-50s)
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json, text/plain, */*',

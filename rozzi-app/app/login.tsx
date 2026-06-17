@@ -8,6 +8,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCustomFonts } from '@/hooks/fonts';
@@ -38,6 +39,17 @@ export default function LoginScreen() {
   const [fontsLoaded] = useCustomFonts();
   const { loginWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Handle hardware back button - exit app from login screen
+  useEffect(() => {
+    const backAction = () => {
+      BackHandler.exitApp();
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, []);
 
   const handleRealGoogleSignIn = async () => {
     setIsLoading(true);

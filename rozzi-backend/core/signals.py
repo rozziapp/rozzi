@@ -1,7 +1,8 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from core.models import Message, Notification
-from core.utils.push_notifications import send_expo_push_notification
+from core.models import Message, Notification, Job
+from core.tasks import send_push_notification_task
+from django.core.cache import cache
 
 @receiver(post_save, sender=Message)
 def send_push_notification_on_message(sender, instance, created, **kwargs):
@@ -27,7 +28,7 @@ def send_push_notification_on_message(sender, instance, created, **kwargs):
                         "messageId": str(instance.id),
                     }
                     
-                    send_expo_push_notification(
+                    send_push_notification_task.delay(
                         to_tokens=tokens,
                         title=f"Message from {display_name}",
                         body=instance.content,
@@ -53,7 +54,7 @@ def send_push_notification_on_db_notification(sender, instance, created, **kwarg
                     "senderId": str(instance.sender_id) if instance.sender_id else "",
                 }
                 
-                send_expo_push_notification(
+                send_push_notification_task.delay(
                     to_tokens=tokens,
                     title=instance.title,
                     body=instance.message,
@@ -61,3 +62,16 @@ def send_push_notification_on_db_notification(sender, instance, created, **kwarg
                 )
         except Exception as e:
             print(f"Error sending DB notification push: {e}")
+
+@receiver(post_save, sender=Job)
+@receiver(post_delete, sender=Job)
+def invalidate_job_cache(sender, instance, **kwargs):
+    """Increment cache version to invalidate all job list caches when a job is created/modified/deleted"""
+    try:
+        # Increment version. Timeout is set to 24h (86400s). Fallback default is 1 if not set yet.
+        current_version = cache.get('jobs_cache_version', 1)
+        cache.set('jobs_cache_version', current_version + 1, timeout=86400)
+        print(f"[Cache] Invalidated jobs cache (new version: {current_version + 1})")
+    except Exception as e:
+        print(f"Error invalidating job cache: {e}")
+
